@@ -1,3 +1,8 @@
+**Attention: This is a fork of [Grafana](https://github.com/grafana/grafana) for use in the SystemLink™ platform. Significant changes are:**
+- Some stuff
+- More stuff
+- Cool stuff
+
 ![Grafana](docs/logo-horizontal.png)
 
 The open-source platform for monitoring and observability.
