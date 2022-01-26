@@ -13,10 +13,12 @@ pool:
   name: DevCentral-Skyline
 
 steps:
-- script: echo $(Build.SourceVersion)
-  displayName: 'Run a one-line script'
+- powershell: |
+    $ShortHash = git rev-parse --short $(Build.SourceVersion)
+    Write-Host "##vso[task.setvariable variable=hash;]$ShortHash"
 
 - script: |
     echo Add other tasks to build, test, and deploy your project.
     echo See https://aka.ms/yaml
+    echo $(Hash)
   displayName: 'Run a multi-line script'
