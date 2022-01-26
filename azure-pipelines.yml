@@ -13,7 +13,7 @@ pool:
   name: DevCentral-Skyline
 
 steps:
-- script: echo Hello, world!
+- script: echo $BUILD_SOURCEVERSION
   displayName: 'Run a one-line script'
 
 - script: |
