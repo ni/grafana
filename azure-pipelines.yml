@@ -13,7 +13,7 @@ pool:
   name: DevCentral-Skyline
 
 steps:
-- script: echo $BUILD_SOURCEVERSION
+- script: echo $(Build.SourceVersion)
   displayName: 'Run a one-line script'
 
 - script: |
