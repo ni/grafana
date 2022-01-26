@@ -13,12 +13,27 @@ pool:
   name: DevCentral-Skyline
 
 steps:
-- powershell: |
-    $ShortHash = git rev-parse --short $(Build.SourceVersion)
-    Write-Host "##vso[task.setvariable variable=hash;]$ShortHash"
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $ShortHash = git rev-parse --short $(Build.SourceVersion)
+      Write-Host "##vso[task.setvariable variable=hash;]$ShortHash"
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-    echo $(Hash)
-  displayName: 'Run a multi-line script'
+- task: Docker@2
+  inputs:
+    repository: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
+    command: 'build'
+    Dockerfile: '**/Dockerfile'
+    tags: '$(Hash)'
+
+- task: ECRPushImage@1
+  inputs:
+    awsCredentials: 'AWS SystemLink Cloud'
+    regionName: 'us-east-1'
+    imageSource: 'imagename'
+    sourceImageName: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
+    sourceImageTag: '$(Hash)'
+    repositoryName: 'ni-grafana'
+    pushTag: '$(Hash)'
+    autoCreateRepository: true
