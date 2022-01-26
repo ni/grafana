@@ -24,7 +24,7 @@ steps:
   inputs:
     repository: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
     command: 'build'
-    Dockerfile: '**/Dockerfile'
+    Dockerfile: 'Dockerfile'
     tags: '$(Hash)'
 
 - task: ECRPushImage@1
