@@ -11,7 +11,7 @@ COPY plugins-bundled plugins-bundled
 
 RUN yarn install
 
-COPY tsconfig.json .eslintrc .editorconfig .browserslistrc .prettierrc.js ./
+COPY tsconfig.json .eslintrc .editorconfig .browserslistrc .prettierrc.js babel.config.json .linguirc ./
 COPY public public
 COPY tools tools
 COPY scripts scripts
@@ -41,7 +41,7 @@ RUN make build-go
 # Final stage
 FROM alpine:3.15
 
-LABEL maintainer="Grafana team <hello@grafana.com>"
+LABEL maintainer="NI <carson.moore@ni.com>"
 
 ARG GF_UID="472"
 ARG GF_GID="0"
