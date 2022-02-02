@@ -151,3 +151,8 @@ compilation-stats.json
 *_gen.go
 
 deployment_tools_config.json
+
+# Helm stuff
+*/charts
+requirements.lock
+Chart.lock
