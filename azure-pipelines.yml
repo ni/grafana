@@ -1,39 +1,38 @@
-trigger: none
-
-# trigger:
-#   branches:
-#     include:
-#       - main
-#   paths:
-#     include:
-#       - public
-#       - packages
-
 pool:
   name: DevCentral-Skyline
 
+trigger:
+  branches:
+    include:
+      - ni/current
+
 steps:
 - task: PowerShell@2
+  displayName: Generate version number
   inputs:
     targetType: 'inline'
     script: |
-      $ShortHash = git rev-parse --short $(Build.SourceVersion)
-      Write-Host "##vso[task.setvariable variable=hash;]$ShortHash"
+      $TagNumber = git describe
+      $ImageVersion = $TagNumber + '-' + $(Build.SourceVersion) + '-ni'
+      Write-Host "##vso[task.setvariable variable=ImageVersion;]$ImageVersion"
 
 - task: Docker@2
+  displayName: Build docker image
   inputs:
     repository: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
     command: 'build'
     Dockerfile: 'Dockerfile'
-    tags: '$(Hash)'
+    tags: '$(ImageVersion)'
 
 - task: ECRPushImage@1
+  # condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/ni/current'))
+  displayName: Push docker image
   inputs:
     awsCredentials: 'AWS SystemLink Cloud'
     regionName: 'us-east-1'
     imageSource: 'imagename'
     sourceImageName: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
-    sourceImageTag: '$(Hash)'
+    sourceImageTag: '$(ImageVersion)'
     repositoryName: 'ni-grafana'
-    pushTag: '$(Hash)'
+    pushTag: '$(ImageVersion)'
     autoCreateRepository: true
