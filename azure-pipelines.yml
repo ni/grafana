@@ -12,8 +12,8 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $TagNumber = git describe
-      $ImageVersion = $TagNumber + '-' + $(Build.BuildNumber) + '-ni'
+      $TagNumber = git describe --abbrev=0 --tags
+      $ImageVersion = "$TagNumber-$(Build.BuildNumber)-ni"
       Write-Host "##vso[task.setvariable variable=ImageVersion;]$ImageVersion"
 
 - task: Docker@2
