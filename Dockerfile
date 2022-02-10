@@ -1,6 +1,6 @@
 FROM node:16-alpine3.15 as js-builder
 
-ENV NODE_OPTIONS=--max_old_space_size=2000
+ENV NODE_OPTIONS=--max_old_space_size=8000
 
 WORKDIR /grafana
 
@@ -30,6 +30,7 @@ COPY go.mod go.sum embed.go Makefile build.go package.json ./
 COPY cue cue
 COPY packages/grafana-schema packages/grafana-schema
 COPY public/app/plugins public/app/plugins
+COPY public/api-spec.json public/api-spec.json
 COPY pkg pkg
 COPY scripts scripts
 COPY cue.mod cue.mod
@@ -41,7 +42,7 @@ RUN make build-go
 # Final stage
 FROM alpine:3.15
 
-LABEL maintainer="NI <carson.moore@ni.com>"
+LABEL maintainer="Grafana team <hello@grafana.com>"
 
 ARG GF_UID="472"
 ARG GF_GID="0"
