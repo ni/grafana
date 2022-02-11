@@ -1,10 +1,10 @@
-pool:
-  name: DevCentral-Skyline
-
 trigger:
   branches:
     include:
       - ni/current
+
+pool:
+  name: DevCentral-Skyline
 
 steps:
 - task: PowerShell@2
@@ -13,7 +13,8 @@ steps:
     targetType: 'inline'
     script: |
       $TagNumber = git describe --abbrev=0 --tags
-      $ImageVersion = "$TagNumber-$(Build.BuildNumber)-ni"
+      $ShortHash = git rev-parse --short $(Build.SourceVersion)
+      $ImageVersion = "$TagNumber-$ShortHash-ni"
       Write-Host "##vso[task.setvariable variable=ImageVersion;]$ImageVersion"
 
 - task: Docker@2
