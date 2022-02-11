@@ -1,0 +1,19 @@
+name: PR Merged
+
+on:
+  pull_request:
+    branches:
+      - ni/priv
+      - ni/pub/*
+    types: [closed]
+
+jobs:
+  main:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ni/current
+      - run: git rebase ${{ github.ref }}
+      - run: git push
