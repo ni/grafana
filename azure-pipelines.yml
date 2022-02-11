@@ -14,7 +14,7 @@ steps:
     script: |
       $TagNumber = git describe --abbrev=0 --tags
       $ShortHash = git rev-parse --short $(Build.SourceVersion)
-      $ImageVersion = "$TagNumber-$ShortHash-ni"
+      $ImageVersion = "$TagNumber-$ShortHash-ni-test"
       Write-Host "##vso[task.setvariable variable=ImageVersion;]$ImageVersion"
 
 - task: Docker@2
