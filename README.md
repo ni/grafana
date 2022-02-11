@@ -1,3 +1,9 @@
+**Attention: This is a fork of [Grafana](https://github.com/grafana/grafana) for use in the NI SystemLink™ platform. Significant changes are:**
+- Modified styling and coloring
+- Add future modifications here
+
+---
+
 ![Grafana](docs/logo-horizontal.png)
 
 The open-source platform for monitoring and observability.
