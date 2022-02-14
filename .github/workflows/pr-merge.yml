@@ -10,6 +10,9 @@ on:
 jobs:
   main:
     if: github.event.pull_request.merged == true
+    environment: main
+    env:
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN_ADMIN }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
