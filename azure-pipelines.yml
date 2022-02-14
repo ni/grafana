@@ -16,32 +16,25 @@ steps:
       $ShortHash = git rev-parse --short $(Build.SourceVersion)
       $ImageVersion = "$TagNumber-$ShortHash-ni-test"
       Write-Host "##vso[task.setvariable variable=ImageVersion;]$ImageVersion"
-      
-- task: PowerShell@2
-  displayName: Build docker image (experimental)
+
+- task: Docker@2
+  displayName: Build docker image
   inputs:
-    targetType: 'inline'
-    script: |
-      docker build .
-
-# - task: Docker@2
-#   displayName: Build docker image
-#   inputs:
-#     repository: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
-#     command: 'build'
+    repository: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
+    command: 'build'
 #     arguments: '--memory="12g"'
-#     Dockerfile: 'Dockerfile'
-#     tags: '$(ImageVersion)'
+    Dockerfile: 'Dockerfile'
+    tags: '$(ImageVersion)'
 
-# - task: ECRPushImage@1
-#   # condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/ni/current'))
-#   displayName: Push docker image
-#   inputs:
-#     awsCredentials: 'AWS SystemLink Cloud'
-#     regionName: 'us-east-1'
-#     imageSource: 'imagename'
-#     sourceImageName: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
-#     sourceImageTag: '$(ImageVersion)'
-#     repositoryName: 'ni-grafana'
-#     pushTag: '$(ImageVersion)'
-#     autoCreateRepository: true
+- task: ECRPushImage@1
+  # condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/ni/current'))
+  displayName: Push docker image
+  inputs:
+    awsCredentials: 'AWS SystemLink Cloud'
+    regionName: 'us-east-1'
+    imageSource: 'imagename'
+    sourceImageName: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
+    sourceImageTag: '$(ImageVersion)'
+    repositoryName: 'ni-grafana'
+    pushTag: '$(ImageVersion)'
+    autoCreateRepository: true
