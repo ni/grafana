@@ -4,7 +4,8 @@ trigger:
       - ni/current
 
 pool:
-  name: DevCentral-Skyline
+#   name: DevCentral-Skyline
+  name: DevCentral-Docker
 
 steps:
 - task: PowerShell@2
