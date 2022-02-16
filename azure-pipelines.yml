@@ -7,15 +7,6 @@ pool:
   name: DevCentral-Docker
 
 steps:
-# - task: PowerShell@2
-#   displayName: Generate version number
-#   inputs:
-#     targetType: 'inline'
-#     script: |
-#       $TagNumber = git describe --abbrev=0 --tags
-#       $ShortHash = git rev-parse --short $(Build.SourceVersion)
-#       $ImageVersion = "$TagNumber-$ShortHash-ni-test"
-#       Write-Host "##vso[task.setvariable variable=ImageVersion;]$ImageVersion"
 - task: Bash@3
   displayName: Generate version number
   inputs:
@@ -35,7 +26,7 @@ steps:
     tags: '$(ImageVersion)'
 
 - task: ECRPushImage@1
-#   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/ni/current'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/ni/current'))
   displayName: Push docker image
   inputs:
     awsCredentials: 'AWS SystemLink Cloud'
