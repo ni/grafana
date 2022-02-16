@@ -8,15 +8,15 @@ pool:
   name: DevCentral-Docker
 
 steps:
-- task: PowerShell@2
-  displayName: Generate version number
-  inputs:
-    targetType: 'inline'
-    script: |
-      $TagNumber = git describe --abbrev=0 --tags
-      $ShortHash = git rev-parse --short $(Build.SourceVersion)
-      $ImageVersion = "$TagNumber-$ShortHash-ni-test"
-      Write-Host "##vso[task.setvariable variable=ImageVersion;]$ImageVersion"
+# - task: PowerShell@2
+#   displayName: Generate version number
+#   inputs:
+#     targetType: 'inline'
+#     script: |
+#       $TagNumber = git describe --abbrev=0 --tags
+#       $ShortHash = git rev-parse --short $(Build.SourceVersion)
+#       $ImageVersion = "$TagNumber-$ShortHash-ni-test"
+#       Write-Host "##vso[task.setvariable variable=ImageVersion;]$ImageVersion"
 
 - task: Docker@2
   displayName: Build docker image
@@ -25,7 +25,8 @@ steps:
     command: 'build'
 #     arguments: '--memory="12g"'
     Dockerfile: 'Dockerfile'
-    tags: '$(ImageVersion)'
+#     tags: '$(ImageVersion)'
+    tags: '$(Build.BuildNumber)'
 
 - task: ECRPushImage@1
   # condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/ni/current'))
@@ -35,7 +36,9 @@ steps:
     regionName: 'us-east-1'
     imageSource: 'imagename'
     sourceImageName: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
-    sourceImageTag: '$(ImageVersion)'
+#     sourceImageTag: '$(ImageVersion)'
+    sourceImageTag: '$(Build.BuildNumber)'
     repositoryName: 'ni-grafana'
-    pushTag: '$(ImageVersion)'
+#     pushTag: '$(ImageVersion)'
+    pushTag: '$(Build.BuildNumber)'
     autoCreateRepository: true
