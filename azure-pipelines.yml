@@ -35,7 +35,7 @@ steps:
     tags: '$(ImageVersion)'
 
 - task: ECRPushImage@1
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/ni/current'))
+#   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/ni/current'))
   displayName: Push docker image
   inputs:
     awsCredentials: 'AWS SystemLink Cloud'
