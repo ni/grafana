@@ -44,4 +44,4 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      docker system prune --volumes -force
+      docker system prune --volumes --force
