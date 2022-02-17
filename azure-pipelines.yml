@@ -38,3 +38,10 @@ steps:
     repositoryName: 'ni-grafana'
     pushTag: '$(ImageVersion)'
     autoCreateRepository: true
+
+- task: Bash@3
+  displayName: Docker cleanup
+  inputs:
+    targetType: 'inline'
+    script: |
+      docker system prune --volumes
