@@ -29,7 +29,6 @@ steps:
       latest
 
 - task: Docker@2
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/ni/current'))
   displayName: Push docker image
   inputs:
     repository: "963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana"
