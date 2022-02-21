@@ -18,6 +18,14 @@ steps:
       echo "##vso[task.setvariable variable=ImageVersion;]$ImageVersion"
       # ImageVersion will look like "8.3.6-8a2963c-ni"
 
+  # Login to Docker Hub
+- task: Docker@2
+  displayName: Login to Docker Hub
+  inputs:
+    command: login
+    containerRegistry: DockerHub
+
+#---------------------------
 - task: Docker@2
   displayName: Build docker image
   inputs:
@@ -28,34 +36,23 @@ steps:
       $(ImageVersion)
       latest
 
-- task: ECRPushImage@1
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/ni/current'))
-  displayName: Push docker image with versioned tag
+# Logout of Docker Hub
+- task: Docker@2
+  displayName: Log out of Docker Hub
   inputs:
-    awsCredentials: 'AWS SystemLink Cloud'
-    regionName: 'us-east-1'
-    imageSource: 'imagename'
-    sourceImageName: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
-    sourceImageTag: '$(ImageVersion)'
-    repositoryName: 'ni-grafana'
-    pushTag: '$(ImageVersion)'
-    autoCreateRepository: true
+    command: logout
+    containerRegistry: DockerHub
 
-# ECRPushImage does not support specifying multiple tags at push time. We therefore push a second time to
-# additionally tag the image with the 'latest' tag. Note that this does not create a second image, and
-# this push completes very quickly since it just adds an additional tag to the image.
-- task: ECRPushImage@1
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/ni/current'))
-  displayName: Tag image with latest
+#---------------------------
+- task: Docker@2
+  displayName: Push docker image
   inputs:
-    awsCredentials: 'AWS SystemLink Cloud'
-    regionName: 'us-east-1'
-    imageSource: 'imagename'
-    sourceImageName: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
-    sourceImageTag: 'latest'
-    repositoryName: 'ni-grafana'
-    pushTag: 'latest'
-    autoCreateRepository: true
+    repository: "963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana"
+    command: push
+    Dockerfile: Dockerfile
+    tags: |
+      $(ImageVersion)
+      latest
 
 - task: Bash@3
   displayName: Docker cleanup
