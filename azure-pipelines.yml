@@ -29,7 +29,8 @@ steps:
       latest
 
 - task: ECRPushImage@1
-  displayName: Push docker image
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/ni/current'))
+  displayName: Push docker image with versioned tag
   inputs:
     awsCredentials: 'AWS SystemLink Cloud'
     regionName: 'us-east-1'
@@ -40,8 +41,10 @@ steps:
     pushTag: '$(ImageVersion)'
     autoCreateRepository: true
 
+# Push a second time to additionally tag the image with the 'latest' tag (the second push is instantaneous)
 - task: ECRPushImage@1
-  displayName: Push docker image
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/ni/current'))
+  displayName: Tag image with latest
   inputs:
     awsCredentials: 'AWS SystemLink Cloud'
     regionName: 'us-east-1'
