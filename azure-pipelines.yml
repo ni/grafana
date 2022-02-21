@@ -28,15 +28,29 @@ steps:
       $(ImageVersion)
       latest
 
-- task: Docker@2
+- task: ECRPushImage@1
   displayName: Push docker image
   inputs:
-    repository: "963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana"
-    command: push
-    Dockerfile: Dockerfile
-    tags: |
-      $(ImageVersion)
-      latest
+    awsCredentials: 'AWS SystemLink Cloud'
+    regionName: 'us-east-1'
+    imageSource: 'imagename'
+    sourceImageName: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
+    sourceImageTag: '$(ImageVersion)'
+    repositoryName: 'ni-grafana'
+    pushTag: '$(ImageVersion)'
+    autoCreateRepository: true
+
+- task: ECRPushImage@1
+  displayName: Push docker image
+  inputs:
+    awsCredentials: 'AWS SystemLink Cloud'
+    regionName: 'us-east-1'
+    imageSource: 'imagename'
+    sourceImageName: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
+    sourceImageTag: 'latest'
+    repositoryName: 'ni-grafana'
+    pushTag: 'latest'
+    autoCreateRepository: true
 
 - task: Bash@3
   displayName: Docker cleanup
