@@ -35,6 +35,18 @@ steps:
     regionName: 'us-east-1'
     imageSource: 'imagename'
     sourceImageName: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
+    sourceImageTag: '$(ImageVersion)'
+    repositoryName: 'ni-grafana'
+    pushTag: '$(ImageVersion)'
+    autoCreateRepository: true
+
+- task: ECRPushImage@1
+  displayName: Push docker image
+  inputs:
+    awsCredentials: 'AWS SystemLink Cloud'
+    regionName: 'us-east-1'
+    imageSource: 'imagename'
+    sourceImageName: '963234657927.dkr.ecr.us-east-1.amazonaws.com/ni-grafana'
     sourceImageTag: 'latest'
     repositoryName: 'ni-grafana'
     pushTag: 'latest'
