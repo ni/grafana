@@ -26,6 +26,8 @@ export function GrafanaRoute(props: Props) {
     updateBodyClassNames(props.route);
     cleanupDOM();
     navigationLogger('GrafanaRoute', false, 'Mounted', props.match);
+    // TODO: Wrap this in a conditional that checks the config value "allow_embedding"
+    window.parent.postMessage('iframeNavigate', window.parent.location.origin);
 
     return () => {
       navigationLogger('GrafanaRoute', false, 'Unmounted', props.route);
@@ -39,6 +41,8 @@ export function GrafanaRoute(props: Props) {
     cleanupDOM();
     reportPageview();
     navigationLogger('GrafanaRoute', false, 'Updated', props);
+    // TODO: Wrap this in a conditional that checks the config value "allow_embedding"
+    window.parent.postMessage('iframeNavigate', window.parent.location.origin);
   });
 
   navigationLogger('GrafanaRoute', false, 'Rendered', props.route);
