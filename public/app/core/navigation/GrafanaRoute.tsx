@@ -16,12 +16,14 @@ export class GrafanaRoute extends React.Component<Props> {
     keybindingSrv.initGlobals();
     reportPageview();
     navigationLogger('GrafanaRoute', false, 'Mounted', this.props.match);
+    window.parent.postMessage('iframeNavigate', window.parent.location.origin);
   }
 
   componentDidUpdate(prevProps: Props) {
     this.cleanupDOM();
     reportPageview();
     navigationLogger('GrafanaRoute', false, 'Updated', this.props, prevProps);
+    window.parent.postMessage('iframeNavigate', window.parent.location.origin);
   }
 
   componentWillUnmount() {
