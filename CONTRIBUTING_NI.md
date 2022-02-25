@@ -1,6 +1,6 @@
 # Contributing to NI-maintained fork of Grafana
 
-### Branching Strategy
+### Branching Policy
 
 Before making any changes, make sure you have read and fully understand the [Branching Policy](https://github.com/ni/grafana/wiki/Branching-policy).
 
