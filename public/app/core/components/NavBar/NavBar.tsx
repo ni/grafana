@@ -50,12 +50,28 @@ export const NavBarUnconnected = React.memo(({ navBarTree }: Props) => {
     setShowSwitcherModal(!showSwitcherModal);
   };
   const navTree = cloneDeep(navBarTree);
-  const topItems = navTree.filter((item) => item.section === NavSection.Core);
-  const bottomItems = enrichConfigItems(
+  let topItems = navTree.filter((item) => item.section === NavSection.Core);
+  topItems = topItems.filter((item) => {
+    const show = item.id === 'create' || item.id === 'dashboards';
+    if (item.id === 'create') {
+      const index = item.children!.findIndex((childItem) => childItem.id === 'alert');
+      item.children!.splice(index, 1);
+    }
+    return show;
+  });
+  let bottomItems = enrichConfigItems(
     navTree.filter((item) => item.section === NavSection.Config),
     location,
     toggleSwitcherModal
   );
+  bottomItems = bottomItems.filter((item) => {
+    const show = item.section === NavSection.Config && item.id === 'help';
+    if (show) {
+      item.children = [];
+      item.url = 'https://github.com/ni/grafana';
+    }
+    return show;
+  });
   const activeItem = isSearchActive(location) ? searchItem : getActiveItem(navTree, location.pathname);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -96,15 +112,19 @@ export const NavBarUnconnected = React.memo(({ navBarTree }: Props) => {
 
       <NavBarSection>
         {bottomItems.map((link, index) => (
-          <NavBarItem
-            key={`${link.id}-${index}`}
-            isActive={isMatchOrChildMatch(link, activeItem)}
-            reverseMenuDirection
-            link={link}
-          >
+          // <NavBarItem
+          //   key={`${link.id}-${index}`}
+          //   isActive={isMatchOrChildMatch(link, activeItem)}
+          //   reverseMenuDirection
+          //   link={link}
+          // >
+          //   {link.icon && <Icon name={link.icon as IconName} size="xl" />}
+          //   {link.img && <img src={link.img} alt={`${link.text} logo`} />}
+          // </NavBarItem>
+          <NavBarItemWithoutMenu key={`${link.id}-${index}`} label="Help" url={link.url}>
             {link.icon && <Icon name={link.icon as IconName} size="xl" />}
             {link.img && <img src={link.img} alt={`${link.text} logo`} />}
-          </NavBarItem>
+          </NavBarItemWithoutMenu>
         ))}
       </NavBarSection>
 
