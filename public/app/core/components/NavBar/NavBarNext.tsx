@@ -47,13 +47,24 @@ export const NavBarNextUnconnected = React.memo(({ navBarTree }: Props) => {
     setShowSwitcherModal(!showSwitcherModal);
   };
   const navTree = cloneDeep(navBarTree);
-  const coreItems = navTree.filter((item) => item.section === NavSection.Core);
+  const coreItems = navTree.filter((item) => {
+    const shownItemIds = ['home', 'dashboards'];
+    return item.section === NavSection.Core && shownItemIds.indexOf(item.id as string) !== -1;
+  });
   const pluginItems = navTree.filter((item) => item.section === NavSection.Plugin);
-  const configItems = enrichConfigItems(
+  let configItems = enrichConfigItems(
     navTree.filter((item) => item.section === NavSection.Config),
     location,
     toggleSwitcherModal
   );
+  configItems = configItems.filter((item) => {
+    const show = item.id === 'help';
+    if (show) {
+      item.children = [];
+      item.url = 'https://github.com/ni/grafana';
+    }
+    return show;
+  });
   const activeItem = isSearchActive(location) ? searchItem : getActiveItem(navTree, location.pathname);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -104,15 +115,10 @@ export const NavBarNextUnconnected = React.memo(({ navBarTree }: Props) => {
 
       <NavBarSection>
         {configItems.map((link, index) => (
-          <NavBarItem
-            key={`${link.id}-${index}`}
-            isActive={isMatchOrChildMatch(link, activeItem)}
-            reverseMenuDirection
-            link={link}
-          >
+          <NavBarItemWithoutMenu key={`${link.id}-${index}`} label="Help" url={link.url}>
             {link.icon && <Icon name={link.icon as IconName} size="xl" />}
             {link.img && <img src={link.img} alt={`${link.text} logo`} />}
-          </NavBarItem>
+          </NavBarItemWithoutMenu>
         ))}
       </NavBarSection>
 
