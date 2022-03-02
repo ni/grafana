@@ -84,13 +84,6 @@ RUN export GF_GID_NAME=$(getent group $GF_GID | cut -d':' -f1) && \
   chown -R "grafana:$GF_GID_NAME" "$GF_PATHS_DATA" "$GF_PATHS_HOME/.aws" "$GF_PATHS_LOGS" "$GF_PATHS_PLUGINS" "$GF_PATHS_PROVISIONING" && \
   chmod -R 777 "$GF_PATHS_DATA" "$GF_PATHS_HOME/.aws" "$GF_PATHS_LOGS" "$GF_PATHS_PLUGINS" "$GF_PATHS_PROVISIONING"
 
-ENV NI_PLUGINS_VERSION="2022-02-07T234351"
-RUN wget https://github.com/ni/grafana-plugins/releases/download/${NI_PLUGINS_VERSION}/${NI_PLUGINS_VERSION}-grafana-plugins.zip -O grafana-plugins.zip  && \
-  unzip grafana-plugins.zip -d /grafana-plugins && \
-  cp -r /grafana-plugins/plugins/systemlink-notebook-datasource $GF_PATHS_PLUGINS && \
-  rm -rf grafana-plugins && \
-  rm grafana-plugins.zip
-
 COPY --from=go-builder /grafana/bin/*/grafana-server /grafana/bin/*/grafana-cli ./bin/
 COPY --from=js-builder /grafana/public ./public
 COPY --from=js-builder /grafana/tools ./tools
