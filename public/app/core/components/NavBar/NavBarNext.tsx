@@ -131,6 +131,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
   search: css`
     display: none;
     margin-top: 0;
+
     ${theme.breakpoints.up('md')} {
       display: block;
     }
@@ -140,6 +141,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     flex-direction: column;
     position: fixed;
     z-index: ${theme.zIndex.sidemenu};
+
     ${theme.breakpoints.up('md')} {
       gap: ${theme.spacing(1)};
       margin-left: ${theme.spacing(1)};
@@ -147,6 +149,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
       position: relative;
       width: ${theme.components.sidemenu.width}px;
     }
+
     .sidemenu-hidden & {
       display: none;
     }
@@ -167,6 +170,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     flex-direction: row;
     justify-content: space-between;
     padding: ${theme.spacing(2)};
+
     ${theme.breakpoints.up('md')} {
       display: none;
     }
