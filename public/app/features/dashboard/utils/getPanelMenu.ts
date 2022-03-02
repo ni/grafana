@@ -1,16 +1,23 @@
-import { AngularComponent, locationService } from '@grafana/runtime';
+import { store } from 'app/store/store';
+import { AngularComponent, getDataSourceSrv, locationService } from '@grafana/runtime';
 import { PanelMenuItem } from '@grafana/data';
 import {
   addLibraryPanel,
   copyPanel,
   duplicatePanel,
   removePanel,
+  sharePanel,
   unlinkLibraryPanel,
 } from 'app/features/dashboard/utils/panel';
 import { isPanelModelLibraryPanel } from 'app/features/library-panels/guard';
 import { PanelModel } from 'app/features/dashboard/state/PanelModel';
 import { DashboardModel } from 'app/features/dashboard/state/DashboardModel';
+import { contextSrv } from '../../../core/services/context_srv';
+import { navigateToExplore } from '../../explore/state/main';
+import { getExploreUrl } from '../../../core/utils/explore';
+import { getTimeSrv } from '../services/TimeSrv';
 import { PanelCtrl } from 'app/angular/panel/panel_ctrl';
+import config from 'app/core/config';
 
 export function getPanelMenu(
   dashboard: DashboardModel,
@@ -29,6 +36,11 @@ export function getPanelMenu(
     locationService.partial({
       editPanel: panel.id,
     });
+  };
+
+  const onSharePanel = (event: React.MouseEvent<any>) => {
+    event.preventDefault();
+    sharePanel(dashboard, panel);
   };
 
   const onAddLibraryPanel = (event: React.MouseEvent<any>) => {
@@ -67,6 +79,13 @@ export function getPanelMenu(
     removePanel(dashboard, panel, true);
   };
 
+  const onNavigateToExplore = (event: React.MouseEvent<any>) => {
+    event.preventDefault();
+    const openInNewWindow =
+      event.ctrlKey || event.metaKey ? (url: string) => window.open(`${config.appSubUrl}${url}`) : undefined;
+    store.dispatch(navigateToExplore(panel, { getDataSourceSrv, getTimeSrv, getExploreUrl, openInNewWindow }) as any);
+  };
+
   const menu: PanelMenuItem[] = [];
 
   if (!panel.isEditing) {
@@ -84,6 +103,22 @@ export function getPanelMenu(
       iconClassName: 'edit',
       onClick: onEditPanel,
       shortcut: 'e',
+    });
+  }
+
+  menu.push({
+    text: 'Share',
+    iconClassName: 'share-alt',
+    onClick: onSharePanel,
+    shortcut: 'p s',
+  });
+
+  if (contextSrv.hasAccessToExplore() && !(panel.plugin && panel.plugin.meta.skipDataQuery)) {
+    menu.push({
+      text: 'Explore',
+      iconClassName: 'compass',
+      shortcut: 'x',
+      onClick: onNavigateToExplore,
     });
   }
 

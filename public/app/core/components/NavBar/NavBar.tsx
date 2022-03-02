@@ -50,28 +50,12 @@ export const NavBarUnconnected = React.memo(({ navBarTree }: Props) => {
     setShowSwitcherModal(!showSwitcherModal);
   };
   const navTree = cloneDeep(navBarTree);
-  let topItems = navTree.filter((item) => item.section === NavSection.Core);
-  topItems = topItems.filter((item) => {
-    const show = item.id === 'create' || item.id === 'dashboards';
-    if (item.id === 'create') {
-      const index = item.children!.findIndex((childItem) => childItem.id === 'alert');
-      item.children!.splice(index, 1);
-    }
-    return show;
-  });
-  let bottomItems = enrichConfigItems(
+  const topItems = navTree.filter((item) => item.section === NavSection.Core);
+  const bottomItems = enrichConfigItems(
     navTree.filter((item) => item.section === NavSection.Config),
     location,
     toggleSwitcherModal
   );
-  bottomItems = bottomItems.filter((item) => {
-    const show = item.section === NavSection.Config && item.id === 'help';
-    if (show) {
-      item.children = [];
-      item.url = 'https://github.com/ni/grafana';
-    }
-    return show;
-  });
   const activeItem = isSearchActive(location) ? searchItem : getActiveItem(navTree, location.pathname);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -112,10 +96,15 @@ export const NavBarUnconnected = React.memo(({ navBarTree }: Props) => {
 
       <NavBarSection>
         {bottomItems.map((link, index) => (
-          <NavBarItemWithoutMenu key={`${link.id}-${index}`} label="Help" url={link.url}>
+          <NavBarItem
+            key={`${link.id}-${index}`}
+            isActive={isMatchOrChildMatch(link, activeItem)}
+            reverseMenuDirection
+            link={link}
+          >
             {link.icon && <Icon name={link.icon as IconName} size="xl" />}
             {link.img && <img src={link.img} alt={`${link.text} logo`} />}
-          </NavBarItemWithoutMenu>
+          </NavBarItem>
         ))}
       </NavBarSection>
 
@@ -139,7 +128,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
   search: css`
     display: none;
     margin-top: ${theme.spacing(5)};
-
     ${theme.breakpoints.up('md')} {
       display: block;
     }
@@ -149,7 +137,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     flex-direction: column;
     position: fixed;
     z-index: ${theme.zIndex.sidemenu};
-
     ${theme.breakpoints.up('md')} {
       background: ${theme.colors.background.primary};
       border-right: 1px solid ${theme.components.panel.borderColor};
@@ -157,7 +144,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
       position: relative;
       width: ${theme.components.sidemenu.width}px;
     }
-
     .sidemenu-hidden & {
       display: none;
     }
@@ -168,7 +154,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
       height: ${theme.spacing(3.5)};
       width: ${theme.spacing(3.5)};
     }
-
     ${theme.breakpoints.up('md')} {
       align-items: center;
       display: flex;
@@ -182,7 +167,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     flex-direction: row;
     justify-content: space-between;
     padding: ${theme.spacing(2)};
-
     ${theme.breakpoints.up('md')} {
       display: none;
     }

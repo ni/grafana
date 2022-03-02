@@ -11,8 +11,6 @@ import { OrgSwitcher } from '../OrgSwitcher';
 import { NavBarSection } from './NavBarSection';
 import { NavBarMenu } from './NavBarMenu';
 import NavBarItem from './NavBarItem';
-import { NavBarItemWithoutMenu } from './NavBarItemWithoutMenu';
-import { Branding } from '../Branding/Branding';
 import { connect, ConnectedProps } from 'react-redux';
 
 const onOpenSearch = () => {
@@ -47,24 +45,13 @@ export const NavBarNextUnconnected = React.memo(({ navBarTree }: Props) => {
     setShowSwitcherModal(!showSwitcherModal);
   };
   const navTree = cloneDeep(navBarTree);
-  const coreItems = navTree.filter((item) => {
-    const shownItemIds = ['home', 'dashboards'];
-    return item.section === NavSection.Core && shownItemIds.indexOf(item.id as string) !== -1;
-  });
+  const coreItems = navTree.filter((item) => item.section === NavSection.Core);
   const pluginItems = navTree.filter((item) => item.section === NavSection.Plugin);
-  let configItems = enrichConfigItems(
+  const configItems = enrichConfigItems(
     navTree.filter((item) => item.section === NavSection.Config),
     location,
     toggleSwitcherModal
   );
-  configItems = configItems.filter((item) => {
-    const show = item.id === 'help';
-    if (show) {
-      item.children = [];
-      item.url = 'https://github.com/ni/grafana';
-    }
-    return show;
-  });
   const activeItem = isSearchActive(location) ? searchItem : getActiveItem(navTree, location.pathname);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -79,9 +66,6 @@ export const NavBarNextUnconnected = React.memo(({ navBarTree }: Props) => {
       </div>
 
       <NavBarSection>
-        <NavBarItemWithoutMenu label="Main menu" className={styles.grafanaLogo} onClick={() => setMenuOpen(!menuOpen)}>
-          <Branding.MenuLogo />
-        </NavBarItemWithoutMenu>
         <NavBarItem className={styles.search} isActive={activeItem === searchItem} link={searchItem}>
           <Icon name="search" size="xl" />
         </NavBarItem>
@@ -115,10 +99,15 @@ export const NavBarNextUnconnected = React.memo(({ navBarTree }: Props) => {
 
       <NavBarSection>
         {configItems.map((link, index) => (
-          <NavBarItemWithoutMenu key={`${link.id}-${index}`} label="Help" url={link.url}>
+          <NavBarItem
+            key={`${link.id}-${index}`}
+            isActive={isMatchOrChildMatch(link, activeItem)}
+            reverseMenuDirection
+            link={link}
+          >
             {link.icon && <Icon name={link.icon as IconName} size="xl" />}
             {link.img && <img src={link.img} alt={`${link.text} logo`} />}
-          </NavBarItemWithoutMenu>
+          </NavBarItem>
         ))}
       </NavBarSection>
 
@@ -142,7 +131,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
   search: css`
     display: none;
     margin-top: 0;
-
     ${theme.breakpoints.up('md')} {
       display: block;
     }
@@ -152,7 +140,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     flex-direction: column;
     position: fixed;
     z-index: ${theme.zIndex.sidemenu};
-
     ${theme.breakpoints.up('md')} {
       gap: ${theme.spacing(1)};
       margin-left: ${theme.spacing(1)};
@@ -160,7 +147,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
       position: relative;
       width: ${theme.components.sidemenu.width}px;
     }
-
     .sidemenu-hidden & {
       display: none;
     }
@@ -181,7 +167,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     flex-direction: row;
     justify-content: space-between;
     padding: ${theme.spacing(2)};
-
     ${theme.breakpoints.up('md')} {
       display: none;
     }

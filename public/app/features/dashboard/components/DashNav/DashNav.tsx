@@ -57,7 +57,6 @@ type Props = OwnProps & ConnectedProps<typeof connector>;
 class DashNav extends PureComponent<Props> {
   constructor(props: Props) {
     super(props);
-    this.props.dashboard.meta.canShare = false;
   }
 
   onClose = () => {
