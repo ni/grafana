@@ -11,6 +11,7 @@ export interface FooterLink {
 }
 
 export let getFooterLinks = (): FooterLink[] => {
+  // Fork: Replace Grafana links with link to our fork
   return [
     {
       text: 'Open Source Fork',
@@ -56,6 +57,7 @@ export function setVersionLinkFn(fn: typeof getFooterLinks) {
 }
 
 export const Footer: FC = React.memo(() => {
+  // Fork: Do not include Grafana links in footer
   const links = getFooterLinks();
 
   return (

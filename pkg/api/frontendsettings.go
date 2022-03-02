@@ -154,6 +154,7 @@ func (hs *HTTPServer) getFrontendSettingsMap(c *models.ReqContext) (map[string]i
 		return nil, err
 	}
 
+	// Fork: Remove reference to Grafana
 	defaultDS := "-- Example Data --"
 	for n, ds := range dataSources {
 		if ds.IsDefault {

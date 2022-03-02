@@ -118,6 +118,7 @@ export const diffs = {
         list: [
           {
             builtIn: 1,
+            // Fork: Remove reference to Grafana
             datasource: '-- Example Data --',
             enable: true,
             hide: true,

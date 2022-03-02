@@ -254,6 +254,7 @@
         var preloader = document.getElementsByClassName("preloader");
         if (preloader.length) {
           preloader[0].className = "preloader preloader--done";
+          // Fork: Tells iframe-host loading indicator when to disappear
           window.parent.postMessage('iframeLoaded', window.parent.location.origin);
         }
       }

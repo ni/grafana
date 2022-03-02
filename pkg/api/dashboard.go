@@ -412,6 +412,7 @@ func (hs *HTTPServer) GetHomeDashboard(c *models.ReqContext) response.Response {
 
 	filePath := hs.Cfg.DefaultHomeDashboardPath
 	if filePath == "" {
+		// Fork: Point to NI-specific home dashboard
 		filePath = filepath.Join(hs.Cfg.StaticRootPath, "dashboards/home_ni.json")
 	}
 

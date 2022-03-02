@@ -43,6 +43,7 @@ export function buildParams({
 }
 
 export function buildBaseUrl() {
+  // Fork: Use iframe parent location for sharing base URL
   let baseUrl = window.parent.location.href;
   const queryStart = baseUrl.indexOf('?');
 
