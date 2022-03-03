@@ -62,7 +62,7 @@ export class Branding {
   static LoginBoxBackground = LoginBoxBackground;
   // Fork: Remove reference to Grafana
   static AppTitle = 'Dashboards';
-  static LoginTitle = 'Welcome to SystemLink Dashboards';
+  static LoginTitle = 'Welcome to Grafana';
   static GetLoginSubTitle = (): null | string => {
     return null;
   };
