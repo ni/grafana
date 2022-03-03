@@ -27,6 +27,8 @@ In an ideal world, we could make changes to [grafana/grafana](https://github.com
 
 Create a branch prefixed with ni/pub based on the same tag that ni/grafana's main is based on. Example:
 ```
+# Finds the most recent tag reachable from main
+git describe --tags --abbrev=0 main
 git checkout -b ni/pub/cool-new-feature v8.3.6
 ```
 
