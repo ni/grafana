@@ -1,19 +1,13 @@
 import React, { PureComponent } from 'react';
 
-import { AppEvents, SelectableValue } from '@grafana/data';
+import { AppEvents } from '@grafana/data';
 import { selectors as e2eSelectors } from '@grafana/e2e-selectors';
-import { Alert, ClipboardButton, Field, FieldSet, Icon, Input, RadioButtonGroup, Switch } from '@grafana/ui';
+import { Alert, ClipboardButton, Field, FieldSet, Icon, Input, Switch } from '@grafana/ui';
 import config from 'app/core/config';
 import { appEvents } from 'app/core/core';
 
 import { ShareModalTabProps } from './types';
 import { buildImageUrl, buildShareUrl } from './utils';
-
-const themeOptions: Array<SelectableValue<string>> = [
-  { label: 'Current', value: 'current' },
-  { label: 'Dark', value: 'dark' },
-  { label: 'Light', value: 'light' },
-];
 
 export interface Props extends ShareModalTabProps {}
 
@@ -85,7 +79,7 @@ export class ShareLink extends PureComponent<Props, State> {
   render() {
     const { panel, dashboard } = this.props;
     const isRelativeTime = dashboard ? dashboard.time.to === 'now' : false;
-    const { useCurrentTimeRange, useShortUrl, selectedTheme, shareUrl, imageUrl } = this.state;
+    const { useCurrentTimeRange, useShortUrl, shareUrl, imageUrl } = this.state;
     const selectors = e2eSelectors.pages.SharePanelModal;
     const isDashboardSaved = Boolean(dashboard.id);
 
@@ -104,9 +98,6 @@ export class ShareLink extends PureComponent<Props, State> {
               value={useCurrentTimeRange}
               onChange={this.onUseCurrentTimeRangeChange}
             />
-          </Field>
-          <Field label="Theme">
-            <RadioButtonGroup options={themeOptions} value={selectedTheme} onChange={this.onThemeChange} />
           </Field>
           <Field label="Shorten URL">
             <Switch id="share-shorten-url" value={useShortUrl} onChange={this.onUrlShorten} />
@@ -153,9 +144,9 @@ export class ShareLink extends PureComponent<Props, State> {
               rel="noopener noreferrer"
               className="external-link"
             >
-              Grafana image renderer plugin
+              image renderer plugin
             </a>
-            . Please contact your Grafana administrator to install the plugin.
+            . Please contact your administrator to install the plugin.
           </Alert>
         )}
       </>

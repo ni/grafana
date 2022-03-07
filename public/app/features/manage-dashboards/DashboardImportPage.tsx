@@ -11,7 +11,6 @@ import {
   FileUpload,
   Form,
   HorizontalGroup,
-  Input,
   Spinner,
   stylesFactory,
   TextArea,
@@ -29,7 +28,7 @@ import { cleanUpAction } from '../../core/actions/cleanUp';
 
 import { ImportDashboardOverview } from './components/ImportDashboardOverview';
 import { fetchGcomDashboard, importDashboardJson } from './state/actions';
-import { validateDashboardJson, validateGcomDashboard } from './utils/validation';
+import { validateDashboardJson } from './utils/validation';
 
 type DashboardImportPageRouteSearchParams = {
   gcomDashboardId?: string;
@@ -133,28 +132,6 @@ class UnthemedDashboardImport extends PureComponent<Props> {
           <FileUpload accept="application/json" onFileUpload={this.onFileUpload}>
             Upload JSON file
           </FileUpload>
-        </div>
-        <div className={styles.option}>
-          <Form onSubmit={this.getGcomDashboard} defaultValues={{ gcomDashboard: '' }}>
-            {({ register, errors }) => (
-              <Field
-                label="Import via grafana.com"
-                invalid={!!errors.gcomDashboard}
-                error={errors.gcomDashboard && errors.gcomDashboard.message}
-              >
-                <Input
-                  id="url-input"
-                  placeholder="Grafana.com dashboard URL or ID"
-                  type="text"
-                  {...register('gcomDashboard', {
-                    required: 'A Grafana dashboard URL or ID is required',
-                    validate: validateGcomDashboard,
-                  })}
-                  addonAfter={<Button type="submit">Load</Button>}
-                />
-              </Field>
-            )}
-          </Form>
         </div>
         <div className={styles.option}>
           <Form onSubmit={this.getDashboardFromJson} defaultValues={{ dashboardJson: '' }}>

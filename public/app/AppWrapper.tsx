@@ -52,6 +52,8 @@ export class AppWrapper extends React.Component<AppWrapperProps, AppWrapperState
     await loadAndInitAngularIfEnabled();
     this.setState({ ready: true });
     $('.preloader').remove();
+    // Fork: Tells iframe-host loading indicator when to disappear
+    window.parent.postMessage('iframeLoaded', window.parent.location.origin);
   }
 
   renderRoute = (route: RouteDescriptor) => {
