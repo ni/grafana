@@ -4,7 +4,6 @@ import React, { FormEvent, PureComponent } from 'react';
 import { reportInteraction } from '@grafana/runtime/src';
 import { ClipboardButton, Field, Modal, Switch, TextArea } from '@grafana/ui';
 
-import { ThemePicker } from './ThemePicker';
 import { ShareModalTabProps } from './types';
 import { buildIframeHtml } from './utils';
 
@@ -61,7 +60,7 @@ export class ShareEmbed extends PureComponent<Props, State> {
   };
 
   render() {
-    const { useCurrentTimeRange, selectedTheme, iframeHtml } = this.state;
+    const { useCurrentTimeRange, iframeHtml } = this.state;
     const isRelativeTime = this.props.dashboard ? this.props.dashboard.time.to === 'now' : false;
 
     const timeRangeDescription = isRelativeTime
@@ -86,7 +85,6 @@ export class ShareEmbed extends PureComponent<Props, State> {
             onChange={this.onUseCurrentTimeRangeChange}
           />
         </Field>
-        <ThemePicker selectedTheme={selectedTheme} onChange={this.onThemeChange} />
         <Field
           label={t({ id: 'share-modal.embed.html', message: 'Embed HTML' })}
           description={

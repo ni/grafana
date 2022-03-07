@@ -12,8 +12,6 @@ import { getKioskMode } from 'app/core/navigation/kiosk';
 import { useSelector } from 'app/types';
 
 import NavBarItem from './NavBarItem';
-import { NavBarItemIcon } from './NavBarItemIcon';
-import { NavBarItemWithoutMenu } from './NavBarItemWithoutMenu';
 import { NavBarMenu } from './NavBarMenu';
 import { NavBarMenuPortalContainer } from './NavBarMenuPortalContainer';
 import { NavBarToggle } from './NavBarToggle';
@@ -104,16 +102,6 @@ export const NavBar = React.memo(() => {
             />
 
             <NavBarMenuPortalContainer />
-
-            <NavBarItemWithoutMenu
-              elClassName={styles.grafanaLogoInner}
-              label={homeItem.text}
-              className={styles.grafanaLogo}
-              url={homeItem.url}
-              onClick={homeItem.onClick}
-            >
-              <NavBarItemIcon link={homeItem} />
-            </NavBarItemWithoutMenu>
 
             <CustomScrollbar hideHorizontalTrack hideVerticalTrack showScrollIndicators>
               <ul className={styles.itemList}>
