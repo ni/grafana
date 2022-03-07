@@ -6,7 +6,6 @@ import { Alert, ClipboardButton, Field, FieldSet, Icon, Input, Switch } from '@g
 import config from 'app/core/config';
 import { t, Trans } from 'app/core/internationalization';
 
-import { ThemePicker } from './ThemePicker';
 import { ShareModalTabProps } from './types';
 import { buildImageUrl, buildShareUrl } from './utils';
 
@@ -77,7 +76,7 @@ export class ShareLink extends PureComponent<Props, State> {
   render() {
     const { panel, dashboard } = this.props;
     const isRelativeTime = dashboard ? dashboard.time.to === 'now' : false;
-    const { useCurrentTimeRange, useShortUrl, selectedTheme, shareUrl, imageUrl } = this.state;
+    const { useCurrentTimeRange, useShortUrl, shareUrl, imageUrl } = this.state;
     const selectors = e2eSelectors.pages.SharePanelModal;
     const isDashboardSaved = Boolean(dashboard.id);
 
@@ -107,7 +106,6 @@ export class ShareLink extends PureComponent<Props, State> {
               onChange={this.onUseCurrentTimeRangeChange}
             />
           </Field>
-          <ThemePicker selectedTheme={selectedTheme} onChange={this.onThemeChange} />
           <Field label={shortenURLTranslation}>
             <Switch id="share-shorten-url" value={useShortUrl} onChange={this.onUrlShorten} />
           </Field>
@@ -166,9 +164,9 @@ export class ShareLink extends PureComponent<Props, State> {
                 rel="noopener noreferrer"
                 className="external-link"
               >
-                Grafana image renderer plugin
+                image renderer plugin
               </a>
-              . Please contact your Grafana administrator to install the plugin.
+              . Please contact your administrator to install the plugin.
             </Trans>
           </Alert>
         )}
