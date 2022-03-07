@@ -14,7 +14,7 @@ export let getFooterLinks = (): FooterLink[] => {
   // Fork: Replace Grafana links with link to our fork
   return [
     {
-      text: 'Open Source Fork',
+      text: 'Source Code',
       icon: 'document-info',
       url: 'https://github.com/ni/grafana',
       target: '_blank',
