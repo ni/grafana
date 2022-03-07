@@ -8,14 +8,12 @@ import { useLocation } from 'react-router-dom';
 import { GrafanaTheme2, NavModelItem, NavSection } from '@grafana/data';
 import { config, locationService, reportInteraction } from '@grafana/runtime';
 import { Icon, useTheme2 } from '@grafana/ui';
-import { Branding } from 'app/core/components/Branding/Branding';
 import { getKioskMode } from 'app/core/navigation/kiosk';
 import { KioskMode, StoreState } from 'app/types';
 
 import { OrgSwitcher } from '../OrgSwitcher';
 
 import NavBarItem from './NavBarItem';
-import { NavBarItemWithoutMenu } from './NavBarItemWithoutMenu';
 import { NavBarMenu } from './NavBarMenu';
 import { NavBarMenuPortalContainer } from './NavBarMenuPortalContainer';
 import { NavBarScrollContainer } from './NavBarScrollContainer';
@@ -113,16 +111,6 @@ export const NavBar = React.memo(() => {
             />
 
             <NavBarMenuPortalContainer />
-
-            <NavBarItemWithoutMenu
-              elClassName={styles.grafanaLogoInner}
-              label={homeItem.text}
-              className={styles.grafanaLogo}
-              url={homeItem.url}
-              onClick={homeItem.onClick}
-            >
-              <Branding.MenuLogo />
-            </NavBarItemWithoutMenu>
 
             <NavBarScrollContainer>
               <ul className={styles.itemList}>
