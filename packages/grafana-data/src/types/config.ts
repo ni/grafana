@@ -92,6 +92,7 @@ export interface GrafanaConfig {
   authProxyEnabled: boolean;
   exploreEnabled: boolean;
   helpEnabled: boolean;
+  profileEnabled: boolean;
   ldapEnabled: boolean;
   sigV4AuthEnabled: boolean;
   samlEnabled: boolean;
