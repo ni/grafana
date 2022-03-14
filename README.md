@@ -2,8 +2,11 @@
 
 - Addition of Azure pipeline for automatically building Docker images
 - Modified styling and coloring
-- Removal of Grafana branding
-- Use of `postMessage` for route syncing when hosted in an iframe
+- Removal of Grafana branding and links to Grafana resources
+- Use of `postMessage` for route syncing and loading indication when hosted in an iframe
+- Update of "home" dashboard to remove unwanted panels
+- Addition of link to this fork of Grafana
+- Modification of sharing functionality to work when embedded
 
 ---
 
