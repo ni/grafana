@@ -57,7 +57,6 @@ export const SnapshotListTable: FC = () => {
         </thead>
         <tbody>
           {snapshots.map((snapshot) => {
-            // const url = snapshot.externalUrl || snapshot.url;
             const fullUrl = snapshot.externalUrl || `${baseUrl}${snapshot.url}`;
             return (
               <tr key={snapshot.key}>
