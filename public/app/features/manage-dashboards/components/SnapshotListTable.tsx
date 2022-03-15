@@ -18,6 +18,7 @@ export const SnapshotListTable: FC = () => {
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [removeSnapshot, setRemoveSnapshot] = useState<Snapshot | undefined>();
   const currentPath = locationService.getLocation().pathname;
+  // Fork: Use iframe parent location for snapshot URL
   const fullUrl = window.parent.location.href;
   const baseUrl = fullUrl.substr(0, fullUrl.indexOf(currentPath));
 

@@ -77,6 +77,7 @@ type CreateDashboardSnapshotCommand struct {
 
 	DashboardEncrypted []byte `json:"-"`
 
+	// Fork: Use iframe parent location for snapshot URL
 	AppUrl string
 
 	Result *DashboardSnapshot
