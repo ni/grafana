@@ -128,7 +128,7 @@ func (hs *HTTPServer) CreateDashboardSnapshot(c *models.ReqContext) response.Res
 			}
 		}
 
-		url = setting.ToAbsUrl("dashboard/snapshot/" + cmd.Key)
+		url = cmd.AppUrl + "/dashboard/snapshot/" + cmd.Key
 
 		metrics.MApiDashboardSnapshotCreate.Inc()
 	}

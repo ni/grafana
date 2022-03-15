@@ -77,6 +77,8 @@ type CreateDashboardSnapshotCommand struct {
 
 	DashboardEncrypted []byte `json:"-"`
 
+	AppUrl string
+
 	Result *DashboardSnapshot
 }
 
