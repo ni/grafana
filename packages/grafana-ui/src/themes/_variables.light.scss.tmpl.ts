@@ -105,8 +105,11 @@ $text-blue: ${theme.v1.colors.textBlue};
 $text-shadow-faint: none;
 
 // gradients
-$brand-gradient-horizontal: linear-gradient(to right, #009B65 30%, #26A97C 99%);
-$brand-gradient-vertical: linear-gradient(#009B65 30%, #26A97C 99%);
+// Fork: NI-specific colors
+$brand-gradient-horizontal: linear-gradient(to right, ${theme.v1.palette.niGreenDark} 30%, ${
+    theme.v1.palette.niGreenLight
+  } 99%);
+$brand-gradient-vertical: linear-gradient(${theme.v1.palette.niGreenDark} 30%, ${theme.v1.palette.niGreenLight} 99%);
 
 // Links
 // -------------------------
