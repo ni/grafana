@@ -4,7 +4,6 @@ import React from 'react';
 import { reportInteraction } from '@grafana/runtime/src';
 import { Modal, ModalTabsHeader, TabContent } from '@grafana/ui';
 import { config } from 'app/core/config';
-import { contextSrv } from 'app/core/core';
 import { SharePublicDashboard } from 'app/features/dashboard/components/ShareModal/SharePublicDashboard/SharePublicDashboard';
 import { DashboardModel, PanelModel } from 'app/features/dashboard/state';
 import { isPanelModelLibraryPanel } from 'app/features/library-panels/guard';
@@ -13,7 +12,6 @@ import { ShareEmbed } from './ShareEmbed';
 import { ShareExport } from './ShareExport';
 import { ShareLibraryPanel } from './ShareLibraryPanel';
 import { ShareLink } from './ShareLink';
-import { ShareSnapshot } from './ShareSnapshot';
 import { ShareModalTabModel } from './types';
 
 const customDashboardTabs: ShareModalTabModel[] = [];
@@ -40,11 +38,6 @@ function getTabs(props: Props) {
 
   const linkLabel = t({ id: 'share-modal.tab-title.link', message: 'Link' });
   const tabs: ShareModalTabModel[] = [{ label: linkLabel, value: 'link', component: ShareLink }];
-
-  if (contextSrv.isSignedIn) {
-    const snapshotLabel = t({ id: 'share-modal.tab-title.snapshot', message: 'Snapshot' });
-    tabs.push({ label: snapshotLabel, value: 'snapshot', component: ShareSnapshot });
-  }
 
   if (panel) {
     const embedLabel = t({ id: 'share-modal.tab-title.embed', message: 'Embed' });

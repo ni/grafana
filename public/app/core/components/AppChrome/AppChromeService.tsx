@@ -1,10 +1,8 @@
-import { t } from '@lingui/macro';
 import { useObservable } from 'react-use';
 import { BehaviorSubject } from 'rxjs';
 
-import { AppEvents, NavModelItem, UrlQueryValue } from '@grafana/data';
+import { NavModelItem, UrlQueryValue } from '@grafana/data';
 import { locationService } from '@grafana/runtime';
-import appEvents from 'app/core/app_events';
 import store from 'app/core/store';
 import { isShallowEqual } from 'app/core/utils/isShallowEqual';
 import { KioskMode } from 'app/types';
@@ -100,11 +98,10 @@ export class AppChromeService {
   setKioskModeFromUrl(kiosk: UrlQueryValue) {
     switch (kiosk) {
       case 'tv':
-        this.update({ kioskMode: KioskMode.TV });
-        break;
       case '1':
       case true:
-        this.update({ kioskMode: KioskMode.Full });
+        this.update({ kioskMode: KioskMode.TV });
+        break;
     }
   }
 
@@ -120,14 +117,7 @@ export class AppChromeService {
   }
 
   private getNextKioskMode() {
-    const { kioskMode, searchBarHidden } = this.state.getValue();
-
-    if (searchBarHidden || kioskMode === KioskMode.TV) {
-      appEvents.emit(AppEvents.alertSuccess, [
-        t({ id: 'navigation.kiosk.tv-alert', message: 'Press ESC to exit kiosk mode' }),
-      ]);
-      return KioskMode.Full;
-    }
+    const { kioskMode } = this.state.getValue();
 
     if (!kioskMode) {
       return KioskMode.TV;
