@@ -1,17 +1,11 @@
-import { AppEvents } from '@grafana/data';
 import { locationService } from '@grafana/runtime';
-
 import { KioskMode } from '../../types';
-import appEvents from '../app_events';
 
 export function toggleKioskMode() {
   let kiosk = locationService.getSearchObject().kiosk;
 
   switch (kiosk) {
     case 'tv':
-      kiosk = true;
-      appEvents.emit(AppEvents.alertSuccess, ['Press ESC to exit Kiosk mode']);
-      break;
     case '1':
     case true:
       kiosk = null;
