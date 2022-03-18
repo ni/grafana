@@ -6,11 +6,9 @@ import { KioskMode } from '../../types';
 export function getKioskMode(queryParams: UrlQueryMap): KioskMode | null {
   switch (queryParams.kiosk) {
     case 'tv':
-      return KioskMode.TV;
-    //  legacy support
     case '1':
     case true:
-      return KioskMode.Full;
+      return KioskMode.TV;
     default:
       return null;
   }
