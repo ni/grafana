@@ -30,6 +30,20 @@ export const DashboardLinksDashboard = (props: Props) => {
     setDropdownCssClass(getDropdownLocationCssClass(listRef.current));
   }, [resolvedLinks]);
 
+  // Fork: Use iframe location for links
+  const getCorrectedHref = function (href: string) {
+    try {
+      // If absolute URL, return
+      new URL(href);
+      return href;
+    } catch {
+      // If relative URL, build in context of iframe location
+      const splitParent = window.parent.location.href.split('/d/');
+      const splitLink = href.split('/d/');
+      return `${splitParent[0]}/d/${splitLink[1]}`;
+    }
+  };
+
   if (link.asDropdown) {
     return (
       <LinkElement link={link} key="dashlinks-dropdown" data-testid={selectors.components.DashboardLinks.dropDown}>
@@ -58,7 +72,7 @@ export const DashboardLinksDashboard = (props: Props) => {
                   <li role="none" key={`dashlinks-dropdown-item-${resolvedLink.uid}-${index}`}>
                     <a
                       role="menuitem"
-                      href={resolvedLink.url}
+                      href={getCorrectedHref(resolvedLink.url)}
                       target={link.targetBlank ? '_blank' : undefined}
                       rel="noreferrer"
                       data-testid={selectors.components.DashboardLinks.link}
@@ -87,7 +101,7 @@ export const DashboardLinksDashboard = (props: Props) => {
             >
               <a
                 className="gf-form-label gf-form-label--dashlink"
-                href={resolvedLink.url}
+                href={getCorrectedHref(resolvedLink.url)}
                 target={link.targetBlank ? '_blank' : undefined}
                 rel="noreferrer"
                 data-testid={selectors.components.DashboardLinks.link}
