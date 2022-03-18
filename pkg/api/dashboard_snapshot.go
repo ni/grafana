@@ -153,7 +153,8 @@ func (hs *HTTPServer) CreateDashboardSnapshot(c *models.ReqContext) response.Res
 			}
 		}
 
-		url = setting.ToAbsUrl("dashboard/snapshot/" + cmd.Key)
+		// Fork: Use iframe parent location for snapshot URL
+		url = cmd.AppUrl + "/dashboard/snapshot/" + cmd.Key
 
 		metrics.MApiDashboardSnapshotCreate.Inc()
 	}
