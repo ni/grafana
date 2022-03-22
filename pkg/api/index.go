@@ -478,13 +478,6 @@ func (hs *HTTPServer) buildDashboardNavLinks(c *models.ReqContext, hasEditPerm b
 
 	if c.IsSignedIn {
 		dashboardChildNavs = append(dashboardChildNavs, &dtos.NavLink{
-			Text: "Snapshots",
-			Id:   "dashboards/snapshots",
-			Url:  hs.Cfg.AppSubURL + "/dashboard/snapshots",
-			Icon: "camera",
-		})
-
-		dashboardChildNavs = append(dashboardChildNavs, &dtos.NavLink{
 			Text: "Library panels",
 			Id:   "dashboards/library-panels",
 			Url:  hs.Cfg.AppSubURL + "/library-panels",
