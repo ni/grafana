@@ -1,6 +1,10 @@
-on: workflow_dispatch
+name: Build and sign docker image
 
-name: build
+on:
+  push:
+    branches:
+      - main
+
 jobs:
   generate_version_number:
     name: Generate version number
@@ -8,25 +12,35 @@ jobs:
     outputs:
       image_version: ${{ steps.generate_version_number_step.outputs.image_version }}
     steps:
-    - uses: actions/checkout@v2
-    - name: Generate version number
-      id: generate_version_number_step
-      run: tag_number=$(git describe --abbrev=0 --tags)
-           short_hash=$(git rev-parse --short ${{ github.sha }})
-           image_version="$(tag_number)-$(short_hash)-ni"
-           echo ::set-output name=image_version::$(echo $image_version)
-           # image_version will look like "8.3.6-8a2963c-ni"
+      - uses: actions/checkout@v2
+      - name: Generate version number
+        id: generate_version_number_step
+        run: tag_number=$(git describe --abbrev=0 --tags)
+             short_hash=$(git rev-parse --short ${{ github.sha }})
+             image_version="$(tag_number)-$(short_hash)-ni"
+             echo ::set-output name=image_version::$(echo $image_version)
+             # image_version will look like "8.3.6-8a2963c-ni"
 
   build_docker_image:
     name: Build Docker Image
     needs: [generate_version_number]
-    uses: docker/build-push-action@v2
-    with:
-      context: .
-      push: true
-      tags: |
-        niartifacts.jfrog.io/rnd-docker-ci/ni/systemlink/ni-grafana:latest
-        niartifacts.jfrog.io/rnd-docker-ci/ni/systemlink/ni-grafana:${{ jobs.generate_version_number.steps.generate_version_number_step.outputs.image_version }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to Artifactory
+        uses: docker/login-action@v1
+        with:
+          registry: niartifacts.jfrog.io
+          username: ${{ secrets.NIARTIFACTS_USER }}
+          password: ${{ secrets.NIARTIFACTS_TOKEN }}
+      - name: Docker build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: |
+            niartifacts.jfrog.io/rnd-docker-ci/ni/systemlink/ni-grafana:latest
+            niartifacts.jfrog.io/rnd-docker-ci/ni/systemlink/ni-grafana:${{ jobs.generate_version_number.steps.generate_version_number_step.outputs.image_version }}
 
   sign_docker_image:
     name: Sign Docker image
