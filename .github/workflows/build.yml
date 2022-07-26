@@ -48,7 +48,7 @@ jobs:
   sign_docker_image:
     name: Sign Docker image
     uses: ni/workflows/.github/workflows/sign-container.yml@main
-    needs: [build_docker_image]
+    needs: [generate_version_number, build_docker_image]
     with:
       image_tag: niartifacts.jfrog.io/rnd-docker-ci/ni/systemlink/ni-grafana:${{ needs.generate_version_number.outputs.image_version }}
       signature_store_bucket: s3://signing-web-demo-bucket-1neyh347t53dt
