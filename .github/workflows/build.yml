@@ -20,7 +20,7 @@ jobs:
         run: |
           tag_number=$(git describe --abbrev=0 --tags)
           short_hash=$(git rev-parse --short ${{ github.sha }})
-          image_version="$(tag_number)-$(short_hash)-ni"
+          image_version="$tag_number-$short_hash-ni"
           echo "::set-output name=image_version::$(echo $image_version)"
         # image_version will look like "8.3.6-8a2963c-ni"
 
