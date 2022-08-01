@@ -32,7 +32,7 @@ git describe --tags --abbrev=0 main
 git checkout -b ni/pub/cool-new-feature <latest-tag>
 ```
 
-Then make your changes on this branch and open a pull request merging it into _main_. If your changes on an ni/pub/* branch result in merge conflicts with another ni/pub/* branch, rebase your branch on the conflicting branch and force push. After the changes are reviewed and accepted, the branch should be merged **via a merge commit** (not squashing) and **not** deleted. Merge commits will make it easier to undo the changes later on if they are accepted upstream.
+Then make your changes on this branch and open a pull request merging it into _main_. If your changes on an ni/pub/* branch result in merge conflicts with another ni/pub/* branch, rebase your branch on the conflicting branch and force push. After the changes are reviewed and accepted, the branch should be **squash merged** and **not** deleted.
 
 #### Integrate a new release of Grafana into the fork?
 
@@ -41,4 +41,30 @@ First, pull the latest tags from upstream:
 git fetch upstream --tags
 git push origin --tags
 ```
-Then ask @mure what to do next, because we haven't gone through this workflow yet 😅
+
+Backup the current main branch, so we can revert if necessary:
+
+```
+git checkout main && git pull
+git checkout -b main-archive-9.0.5 # Version of last rebase
+git push -u origin main-archive-9.0.5
+```
+
+Back on main, reset the branch to the desired Grafana release tag:
+
+```
+git checkout main
+git reset --hard v9.0.5
+```
+
+Cherry-pick all of our NI-specific commits from the archive branch. The first commit should have the message: 
+
+_Add "iframeNavigate" postMessage calls_.
+
+```
+# git cherry-pick X^..Y where X is the first commit and Y is the latest on the archive branch you created above
+git cherry-pick 095cea2^..d919979
+```
+
+Carefully resolve any merge conflicts. Run `git cherry-pick --skip` for any changes that were accepted upstream since the last version bump.
+Once the cherry pick is completed, force push main (`git push -f`). If you are not an admin, ask one to do this step for you.
