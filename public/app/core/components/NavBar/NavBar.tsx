@@ -101,14 +101,14 @@ export const NavBar = React.memo(() => {
               <Icon name="bars" size="xl" />
             </div>
 
-            <NavBarToggle
+            {/* <NavBarToggle
               className={styles.menuExpandIcon}
               isExpanded={menuOpen}
               onClick={() => {
                 reportInteraction('grafana_navigation_expanded');
                 setMenuOpen(true);
               }}
-            />
+            /> */}
 
             <NavBarMenuPortalContainer />
 
