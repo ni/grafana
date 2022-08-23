@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 
 import { GrafanaTheme2, NavModelItem, NavSection } from '@grafana/data';
-import { config, locationService, reportInteraction } from '@grafana/runtime';
+import { config, locationService } from '@grafana/runtime';
 import { Icon, useTheme2 } from '@grafana/ui';
 import { getKioskMode } from 'app/core/navigation/kiosk';
 import { KioskMode, StoreState } from 'app/types';
@@ -17,7 +17,7 @@ import NavBarItem from './NavBarItem';
 import { NavBarMenu } from './NavBarMenu';
 import { NavBarMenuPortalContainer } from './NavBarMenuPortalContainer';
 import { NavBarScrollContainer } from './NavBarScrollContainer';
-import { NavBarToggle } from './NavBarToggle';
+// import { NavBarToggle } from './NavBarToggle';
 import { NavBarContext } from './context';
 import {
   enrichConfigItems,
@@ -101,14 +101,14 @@ export const NavBar = React.memo(() => {
               <Icon name="bars" size="xl" />
             </div>
 
-            <NavBarToggle
+            {/* <NavBarToggle
               className={styles.menuExpandIcon}
               isExpanded={menuOpen}
               onClick={() => {
                 reportInteraction('grafana_navigation_expanded');
                 setMenuOpen(true);
               }}
-            />
+            /> */}
 
             <NavBarMenuPortalContainer />
 
