@@ -21,6 +21,7 @@ import { renameByRegexTransformer } from './transformers/renameByRegex';
 import { seriesToColumnsTransformer } from './transformers/seriesToColumns';
 import { seriesToRowsTransformer } from './transformers/seriesToRows';
 import { sortByTransformer } from './transformers/sortBy';
+import { splitByTransformer } from './transformers/splitBy';
 
 export const standardTransformers = {
   noopTransformer,
@@ -41,6 +42,7 @@ export const standardTransformers = {
   ensureColumnsTransformer,
   groupByTransformer,
   sortByTransformer,
+  splitByTransformer,
   mergeTransformer,
   renameByRegexTransformer,
   histogramTransformer,
