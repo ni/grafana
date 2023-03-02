@@ -20,13 +20,14 @@ func (s *ServiceImpl) getAdminNode(c *contextmodel.ReqContext) (*navtree.NavLink
 	authConfigUIAvailable := s.license.FeatureEnabled("saml") && s.features.IsEnabled(featuremgmt.FlagAuthenticationConfigUI)
 
 	if hasAccess(ac.ReqOrgAdmin, datasources.ConfigurationPageAccess) {
-		configNodes = append(configNodes, &navtree.NavLink{
-			Text:     "Data sources",
-			Icon:     "database",
-			SubTitle: "Add and configure data sources",
-			Id:       "datasources",
-			Url:      s.cfg.AppSubURL + "/datasources",
-		})
+		// Fork: Remove data source configuration page, which shows up for all users when viewers_can_edit = true.
+		// configNodes = append(configNodes, &navtree.NavLink{
+		// 	Text:     "Data sources",
+		// 	Icon:     "database",
+		// 	SubTitle: "Add and configure data sources",
+		// 	Id:       "datasources",
+		// 	Url:      s.cfg.AppSubURL + "/datasources",
+		// })
 	}
 
 	// FIXME: while we don't have a permissions for listing plugins the legacy check has to stay as a default
