@@ -77,8 +77,7 @@ class UnConnectedExploreToolbar extends PureComponent<Props> {
   };
 
   onCopyShortLink = async () => {
-    // Fork: correct link in iframe
-    await createAndCopyShortLink(window.parent.location.href);
+    await createAndCopyShortLink(window.location.href);
     reportInteraction('grafana_explore_shortened_link_clicked');
   };
 
@@ -270,7 +269,8 @@ class UnConnectedExploreToolbar extends PureComponent<Props> {
 
     const toolbarLeftItems = [
       // We only want to show the shortened link button in the left Toolbar if topnav is not enabled as with topnav enabled it sits next to the brecrumbs
-      !isTopnav && exploreId === ExploreId.left && shareButton,
+      // Fork: disable short link button
+      // !isTopnav && exploreId === ExploreId.left && shareButton,
       getDataSourcePicker(),
     ].filter(Boolean);
 
