@@ -403,4 +403,7 @@ $vertical-resize-handle-dots-hover: $gray-2;
 $calendar-bg-days: $white;
 $calendar-bg-now: $gray-6;
 
+// NI Colors
+$ni-green-light: ${theme.v1.palette.niGreenLight};
+$ni-green-dark: ${theme.v1.palette.niGreenDark};
 `;
