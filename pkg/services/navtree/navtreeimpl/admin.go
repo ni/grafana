@@ -17,13 +17,14 @@ func (s *ServiceImpl) getOrgAdminNode(c *contextmodel.ReqContext) (*navtree.NavL
 
 	hasAccess := ac.HasAccess(s.accessControl, c)
 	if hasAccess(ac.ReqOrgAdmin, datasources.ConfigurationPageAccess) {
-		configNodes = append(configNodes, &navtree.NavLink{
-			Text:     "Data sources",
-			Icon:     "database",
-			SubTitle: "Add and configure data sources",
-			Id:       "datasources",
-			Url:      s.cfg.AppSubURL + "/datasources",
-		})
+		// Fork: Remove data source configuration page, which shows up for all users when viewers_can_edit = true.
+		// configNodes = append(configNodes, &navtree.NavLink{
+		// 	Text:     "Data sources",
+		// 	Icon:     "database",
+		// 	SubTitle: "Add and configure data sources",
+		// 	Id:       "datasources",
+		// 	Url:      s.cfg.AppSubURL + "/datasources",
+		// })
 	}
 
 	if s.features.IsEnabled(featuremgmt.FlagCorrelations) && hasAccess(ac.ReqOrgAdmin, correlations.ConfigurationPageAccess) {

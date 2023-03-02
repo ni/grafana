@@ -77,7 +77,8 @@ class UnConnectedExploreToolbar extends PureComponent<Props> {
   };
 
   onCopyShortLink = async () => {
-    await createAndCopyShortLink(window.location.href);
+    // Fork: correct link in iframe
+    await createAndCopyShortLink(window.parent.location.href);
     reportInteraction('grafana_explore_shortened_link_clicked');
   };
 
