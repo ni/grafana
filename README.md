@@ -10,6 +10,7 @@
 - Removal of kiosk mode
 - Removal of plugins list plugin
 - Removal of snapshot functionality
+- Hiding the "General" folder
 
 ---
 
