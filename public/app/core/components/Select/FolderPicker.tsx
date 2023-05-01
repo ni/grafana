@@ -72,7 +72,7 @@ export function FolderPicker(props: Props) {
     initialTitle = '',
     permissionLevel = PermissionLevelString.Edit,
     rootName: rootNameProp,
-    showRoot = true,
+    showRoot = false,
     skipInitialLoad,
     searchQueryType,
     customAdd,
@@ -138,7 +138,6 @@ export function FolderPicker(props: Props) {
 
   const loadInitialValue = async () => {
     const resetFolder: SelectableValue<string> = { label: initialTitle, value: undefined };
-    const rootFolder: SelectableValue<string> = { label: rootName, value: '' };
 
     const options = await getOptions('');
 
@@ -153,16 +152,12 @@ export function FolderPicker(props: Props) {
     }
 
     if (!folder && !allowEmpty) {
-      if (contextSrv.isEditor) {
-        folder = rootFolder;
+      // We shouldn't assign a random folder without the user actively choosing it on a persisted dashboard
+      const isPersistedDashBoard = !!dashboardId;
+      if (isPersistedDashBoard) {
+        folder = resetFolder;
       } else {
-        // We shouldn't assign a random folder without the user actively choosing it on a persisted dashboard
-        const isPersistedDashBoard = !!dashboardId;
-        if (isPersistedDashBoard) {
-          folder = resetFolder;
-        } else {
-          folder = options.length > 0 ? options[0] : resetFolder;
-        }
+        folder = options.find((option) => option.label?.startsWith('Default')) ?? options[0] ?? resetFolder;
       }
     }
     !isCreatingNew && setFolder(folder);
