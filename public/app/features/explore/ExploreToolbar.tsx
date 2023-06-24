@@ -135,16 +135,18 @@ export function ExploreToolbar({ exploreId, topOfViewRef, onChangeTime }: Props)
       {refreshInterval && <SetInterval func={onRunQuery} interval={refreshInterval} loading={loading} />}
       <div ref={topOfViewRef}>
         <AppChromeUpdate
-          actions={[
-            <DashNavButton
-              key="share"
-              tooltip="Copy shortened link"
-              icon="share-alt"
-              onClick={onCopyShortLink}
-              aria-label="Copy shortened link"
-            />,
-            <div style={{ flex: 1 }} key="spacer" />,
-          ]}
+          actions={
+            null && [
+              <DashNavButton
+                key="share"
+                tooltip="Copy shortened link"
+                icon="share-alt"
+                onClick={onCopyShortLink}
+                aria-label="Copy shortened link"
+              />,
+              <div style={{ flex: 1 }} key="spacer" />,
+            ]
+          }
         />
       </div>
       <PageToolbar

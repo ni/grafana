@@ -51,8 +51,8 @@ export function NavToolbar({
       <Breadcrumbs breadcrumbs={breadcrumbs} className={styles.breadcrumbs} />
       <div className={styles.actions}>
         {actions}
-        {actions && <NavToolbarSeparator />}
-        {searchBarHidden && (
+        {false && <NavToolbarSeparator />}
+        {false && (
           <ToolbarButton
             onClick={onToggleKioskMode}
             narrow
@@ -61,6 +61,7 @@ export function NavToolbar({
           />
         )}
         <ToolbarButton
+          style={{ display: 'none' }}
           onClick={onToggleSearchBar}
           narrow
           title={t('navigation.toolbar.toggle-search-bar', 'Toggle top search bar')}

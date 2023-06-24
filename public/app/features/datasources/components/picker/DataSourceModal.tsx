@@ -147,7 +147,7 @@ export function DataSourceModal({
             </FileDropzone>
           )}
         </div>
-        <div className={styles.newDSSection}>
+        <div style={{ display: 'none' }} className={styles.newDSSection}>
           <span className={styles.newDSDescription}>Open a new tab and configure a data source</span>
           <AddNewDataSourceButton
             variant="secondary"

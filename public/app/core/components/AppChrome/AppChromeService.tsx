@@ -1,8 +1,9 @@
 import { useObservable } from 'react-use';
 import { BehaviorSubject } from 'rxjs';
 
-import { NavModel, NavModelItem, PageLayoutType, UrlQueryValue } from '@grafana/data';
+import { AppEvents, NavModel, NavModelItem, PageLayoutType, UrlQueryValue } from '@grafana/data';
 import { locationService, reportInteraction } from '@grafana/runtime';
+import appEvents from 'app/core/app_events';
 import { t } from 'app/core/internationalization';
 import store from 'app/core/store';
 import { isShallowEqual } from 'app/core/utils/isShallowEqual';
@@ -29,7 +30,7 @@ export class AppChromeService {
   readonly state = new BehaviorSubject<AppChromeState>({
     chromeless: true, // start out hidden to not flash it on pages without chrome
     sectionNav: { node: { text: t('nav.home.title', 'Home') }, main: { text: '' } },
-    searchBarHidden: store.getBool(this.searchBarStorageKey, false),
+    searchBarHidden: store.getBool(this.searchBarStorageKey, true),
     kioskMode: null,
     layout: PageLayoutType.Canvas,
   });
@@ -122,10 +123,11 @@ export class AppChromeService {
   setKioskModeFromUrl(kiosk: UrlQueryValue) {
     switch (kiosk) {
       case 'tv':
-      case '1':
-      case true:
         this.update({ kioskMode: KioskMode.TV });
         break;
+      case '1':
+      case true:
+        this.update({ kioskMode: KioskMode.Full });
     }
   }
 
@@ -141,7 +143,12 @@ export class AppChromeService {
   }
 
   private getNextKioskMode() {
-    const { kioskMode } = this.state.getValue();
+    const { kioskMode, searchBarHidden } = this.state.getValue();
+
+    if (searchBarHidden || kioskMode === KioskMode.TV) {
+      appEvents.emit(AppEvents.alertSuccess, [t('navigation.kiosk.tv-alert', 'Press ESC to exit kiosk mode')]);
+      return KioskMode.Full;
+    }
 
     if (!kioskMode) {
       return KioskMode.TV;
