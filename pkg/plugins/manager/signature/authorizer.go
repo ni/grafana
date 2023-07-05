@@ -34,5 +34,13 @@ func (u *UnsignedPluginAuthorizer) CanLoadPlugin(p *plugins.Plugin) bool {
 		}
 	}
 
+	if p.Parent != nil {
+		for _, pID := range u.cfg.PluginsAllowUnsigned {
+			if pID == p.Parent.ID {
+				return true
+			}
+		}
+	}
+
 	return false
 }
