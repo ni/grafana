@@ -34,6 +34,7 @@ func (u *UnsignedPluginAuthorizer) CanLoadPlugin(p *plugins.Plugin) bool {
 		}
 	}
 
+	// Allow a plugin to be unsigned when nested in an whitelisted app plugin
 	if p.Parent != nil {
 		for _, pID := range u.cfg.PluginsAllowUnsigned {
 			if pID == p.Parent.ID {
