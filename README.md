@@ -11,6 +11,7 @@
 - Removal of plugins list plugin
 - Removal of snapshot functionality
 - Hiding the "General" folder
+- Allow unsigned nested plugins if parent is allowed
 
 ---
 
