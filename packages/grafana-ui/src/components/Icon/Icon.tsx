@@ -31,7 +31,7 @@ const getIconStyles = (theme: GrafanaTheme2) => {
       fill: currentColor;
     `,
     orange: css`
-      fill: ${theme.v1.palette.orange};
+      fill: #009b65;
     `,
   };
 };
