@@ -213,7 +213,7 @@ var (
 			Name:        "dataConnectionsConsole",
 			Description: "Enables a new top-level page called Connections. This page is an experiment that provides a better experience when you install and configure data sources and other plugins.",
 			State:       FeatureStateStable,
-			Expression:  "true", // turned on by default
+			Expression:  "false", // NI fork: disabled
 			Owner:       grafanaPluginsPlatformSquad,
 		},
 		{
@@ -227,7 +227,7 @@ var (
 			Name:        "topnav",
 			Description: "Enables new top navigation and page layouts",
 			State:       FeatureStateStable,
-			Expression:  "true", // enabled by default
+			Expression:  "false", // NI fork: disabled
 			Owner:       grafanaUserEssentialsSquad,
 		},
 		{

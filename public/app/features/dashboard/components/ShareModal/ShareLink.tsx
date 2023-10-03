@@ -108,7 +108,7 @@ export class ShareLink extends PureComponent<Props, State> {
             />
           </Field>
           <ThemePicker selectedTheme={selectedTheme} onChange={this.onThemeChange} />
-          <Field label={shortenURLTranslation}>
+          <Field label={shortenURLTranslation} style={{ display: 'none' }}>
             <Switch id="share-shorten-url" value={useShortUrl} onChange={this.onUrlShorten} />
           </Field>
 
@@ -152,7 +152,7 @@ export class ShareLink extends PureComponent<Props, State> {
           </>
         )}
 
-        {panel && !config.rendererAvailable && (
+        {false && panel && !config.rendererAvailable && (
           <Alert
             severity="info"
             title={t('share-modal.link.render-alert', 'Image renderer plugin not installed')}

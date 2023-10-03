@@ -132,7 +132,7 @@ class UnthemedDashboardImport extends PureComponent<Props> {
             />
           </FileDropzone>
         </div>
-        <div className={styles.option}>
+        <div className={styles.option} style={{ display: 'none' }}>
           <Form onSubmit={this.getGcomDashboard} defaultValues={{ gcomDashboard: '' }}>
             {({ register, errors }) => (
               <Field

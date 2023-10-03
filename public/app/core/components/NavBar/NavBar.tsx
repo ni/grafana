@@ -289,6 +289,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     top: '43px',
     right: '0px',
     transform: `translateX(50%)`,
+    display: 'none', // NI fork: hide NavBarToggle
   }),
   menuPortalContainer: css({
     zIndex: theme.zIndex.sidemenu,

@@ -269,7 +269,8 @@ class UnConnectedExploreToolbar extends PureComponent<Props> {
 
     const toolbarLeftItems = [
       // We only want to show the shortened link button in the left Toolbar if topnav is not enabled as with topnav enabled it sits next to the brecrumbs
-      !isTopnav && exploreId === ExploreId.left && shareButton,
+      // NI fork: disable short link button
+      // !isTopnav && exploreId === ExploreId.left && shareButton,
       getDataSourcePicker(),
     ].filter(Boolean);
 
