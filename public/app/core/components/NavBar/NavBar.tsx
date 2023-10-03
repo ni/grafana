@@ -240,7 +240,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   grafanaLogo: css({
     alignItems: 'stretch',
-    display: 'flex',
+    display: 'none',
     flexShrink: 0,
     height: theme.spacing(6),
     justifyContent: 'stretch',
