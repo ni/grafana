@@ -24,6 +24,20 @@ interface DashboardLinksMenuProps {
   dashboardUID: string;
 }
 
+// NI fork: Use iframe location for links
+function getCorrectedHref(href: string) {
+  try {
+    // If absolute URL, return
+    new URL(href);
+    return href;
+  } catch {
+    // If relative URL, build in context of iframe location
+    const splitParent = window.parent.location.href.split('/d/');
+    const splitLink = href.split('/d/');
+    return `${splitParent[0]}/d/${splitLink[1]}`;
+  }
+};
+
 function DashboardLinksMenu({ dashboardUID, link }: DashboardLinksMenuProps) {
   const styles = useStyles2(getStyles);
   const resolvedLinks = useResolvedLinks({ dashboardUID, link });
@@ -39,7 +53,7 @@ function DashboardLinksMenu({ dashboardUID, link }: DashboardLinksMenuProps) {
           {resolvedLinks.map((resolvedLink, index) => {
             return (
               <Menu.Item
-                url={resolvedLink.url}
+                url={getCorrectedHref(resolvedLink.url)}
                 target={link.targetBlank ? '_blank' : undefined}
                 key={`dashlinks-dropdown-item-${resolvedLink.uid}-${index}`}
                 label={resolvedLink.title}
@@ -88,7 +102,7 @@ export const DashboardLinksDashboard = (props: Props) => {
               icon="apps"
               variant="secondary"
               fill="outline"
-              href={resolvedLink.url}
+              href={getCorrectedHref(resolvedLink.url)}
               target={link.targetBlank ? '_blank' : undefined}
               rel="noreferrer"
               data-testid={selectors.components.DashboardLinks.link}
