@@ -307,7 +307,7 @@ function getDataSourceModalStyles(theme: GrafanaTheme2) {
       }
     `,
     newDSSection: css`
-      display: flex;
+      display: none;
       flex-direction: row;
       width: 100%;
       justify-content: space-between;

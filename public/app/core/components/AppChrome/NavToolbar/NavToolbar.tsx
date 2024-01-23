@@ -44,7 +44,7 @@ export function NavToolbar({
 
   return (
     <div data-testid={Components.NavToolbar.container} className={styles.pageToolbar}>
-      <div className={styles.menuButton}>
+      <div className={styles.menuButton} style={{ display: 'none' }}>
         <IconButton
           id={TOGGLE_BUTTON_ID}
           name="bars"
@@ -68,6 +68,7 @@ export function NavToolbar({
             narrow
             title={t('navigation.toolbar.enable-kiosk', 'Enable kiosk mode')}
             icon="monitor"
+            style={{ display: 'none' }}
           />
         )}
         {actions && <NavToolbarSeparator />}
@@ -75,6 +76,7 @@ export function NavToolbar({
           onClick={onToggleSearchBar}
           narrow
           title={t('navigation.toolbar.toggle-search-bar', 'Toggle top search bar')}
+          style={{ display: 'none' }}
         >
           <Icon name={searchBarHidden ? 'angle-down' : 'angle-up'} size="xl" />
         </ToolbarButton>
@@ -110,7 +112,7 @@ const getStyles = (theme: GrafanaTheme2) => {
       alignItems: 'center',
       flexWrap: 'nowrap',
       justifyContent: 'flex-end',
-      paddingLeft: theme.spacing(1),
+      paddingLeft: 0, // NI fork: padding looks weird with no breadcrumbs
       flexGrow: 1,
       gap: theme.spacing(1),
       minWidth: 0,
