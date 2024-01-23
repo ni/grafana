@@ -18,10 +18,10 @@ export function EntityNotFound({ entity = 'Page' }: Props) {
     <div className={styles.container} data-testid={selectors.components.EntityNotFound.container}>
       <EmptyState message={`${entity} not found`} variant="not-found">
         We&apos;re looking but can&apos;t seem to find this {entity.toLowerCase()}. Try returning{' '}
-        <TextLink href="/">home</TextLink> or seeking help on the{' '}
+        <TextLink href="/">home</TextLink>{'.'} {/* or seeking help on the{' '}
         <TextLink href="https://community.grafana.com" external>
           community site.
-        </TextLink>
+        </TextLink>*/}
       </EmptyState>
     </div>
   );
