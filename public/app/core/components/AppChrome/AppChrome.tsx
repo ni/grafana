@@ -22,7 +22,7 @@ export interface Props extends PropsWithChildren<{}> {}
 export function AppChrome({ children }: Props) {
   const { chrome } = useGrafana();
   const state = chrome.useState();
-  const searchBarHidden = state.searchBarHidden || state.kioskMode === KioskMode.TV;
+  const searchBarHidden = true || state.searchBarHidden || state.kioskMode === KioskMode.TV;
   const theme = useTheme2();
   const styles = useStyles2(getStyles);
 
@@ -141,8 +141,9 @@ const getStyles = (theme: GrafanaTheme2) => {
       zIndex: theme.zIndex.navbarFixed,
       left: 0,
       right: 0,
-      boxShadow: config.featureToggles.dockedMegaMenu ? undefined : shadow,
-      background: theme.colors.background.primary,
+      // NI fork: improve appearance of topNav
+      boxShadow: true ? undefined : shadow,
+      // background: theme.colors.background.primary,
       flexDirection: 'column',
       borderBottom: `1px solid ${theme.colors.border.weak}`,
     }),
