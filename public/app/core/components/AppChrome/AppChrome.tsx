@@ -22,7 +22,7 @@ export interface Props extends PropsWithChildren<{}> {}
 export function AppChrome({ children }: Props) {
   const { chrome } = useGrafana();
   const state = chrome.useState();
-  const searchBarHidden = state.searchBarHidden || state.kioskMode === KioskMode.TV;
+  const searchBarHidden = true || state.searchBarHidden || state.kioskMode === KioskMode.TV;
   const theme = useTheme2();
   const styles = useStyles2(getStyles);
 

@@ -53,7 +53,7 @@ var (
 			Description:    "Enables public access to dashboards",
 			Stage:          FeatureStageGeneralAvailability,
 			Owner:          grafanaSharingSquad,
-			Expression:     "true", // enabled by default
+			Expression:     "false", // NI fork: disabled
 			AllowSelfServe: truePtr,
 			Created:        time.Date(2022, time.April, 7, 12, 0, 0, 0, time.UTC),
 		},
