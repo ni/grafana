@@ -58,7 +58,7 @@ export function NavToolbar({
 
   return (
     <div data-testid={Components.NavToolbar.container} className={styles.pageToolbar}>
-      <div className={styles.menuButton}>
+      <div className={styles.menuButton} style={{ display: 'none' }}>
         <IconButton
           id={TOGGLE_BUTTON_ID}
           name="bars"
@@ -76,19 +76,21 @@ export function NavToolbar({
       <Breadcrumbs breadcrumbs={breadcrumbs} className={styles.breadcrumbsWrapper} />
       <div className={styles.actions}>
         {actions}
-        {actions && <NavToolbarSeparator />}
+        {false && <NavToolbarSeparator />}
         {searchBarHidden && (
           <ToolbarButton
             onClick={onToggleKioskMode}
             narrow
             title={t('navigation.toolbar.enable-kiosk', 'Enable kiosk mode')}
             icon="monitor"
+            style={{ display: 'none' }}
           />
         )}
         <ToolbarButton
           onClick={onToggleSearchBar}
           narrow
           title={t('navigation.toolbar.toggle-search-bar', 'Toggle top search bar')}
+          style={{ display: 'none' }}
         >
           <Icon name={searchBarHidden ? 'angle-down' : 'angle-up'} size="xl" />
         </ToolbarButton>
