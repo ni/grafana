@@ -217,6 +217,9 @@ export function ExploreToolbar({ exploreId, onChangeTime, onContentOutlineToogle
     <div style={{ flex: 1 }} key="spacer0" />,
   ];
 
+  // NI fork: disable short link button
+  navBarActions.length = 0;
+
   return (
     <div>
       {refreshInterval && <SetInterval func={onRunQuery} interval={refreshInterval} loading={loading} />}
