@@ -86,7 +86,7 @@ const DashboardEmpty = ({ dashboard, canCreate }: Props) => {
                 </Stack>
               </Box>
             )}
-            <Box borderColor="strong" borderStyle="dashed" padding={3} flex={1}>
+            <Box borderColor="strong" borderStyle="dashed" padding={3} flex={1} display="none">
               <Stack direction="column" alignItems="center" gap={1}>
                 <Text element="h3" textAlignment="center" weight="medium">
                   <Trans i18nKey="dashboard.empty.add-library-panel-header">Import panel</Trans>
@@ -112,7 +112,7 @@ const DashboardEmpty = ({ dashboard, canCreate }: Props) => {
                 </Button>
               </Stack>
             </Box>
-            <Box borderColor="strong" borderStyle="dashed" padding={3} flex={1}>
+            <Box borderColor="strong" borderStyle="dashed" padding={3} flex={1} display="none">
               <Stack direction="column" alignItems="center" gap={1}>
                 <Text element="h3" textAlignment="center" weight="medium">
                   <Trans i18nKey="dashboard.empty.import-a-dashboard-header">Import a dashboard</Trans>

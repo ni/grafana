@@ -61,7 +61,7 @@ export class UnthemedQueryEditor extends PureComponent<Props, State> {
     {
       label: 'Live Measurements',
       value: GrafanaQueryType.LiveMeasurements,
-      description: 'Stream real-time measurements from Grafana',
+      description: 'Stream real-time measurements',
     },
     {
       label: 'List public files',
@@ -127,7 +127,7 @@ export class UnthemedQueryEditor extends PureComponent<Props, State> {
     } as any;
 
     getDataSourceSrv()
-      .get('-- Grafana --')
+      .get('-- Example Data --')
       .then((ds) => {
         const gds = ds as GrafanaDatasource;
         gds.query(query).subscribe({
@@ -322,7 +322,7 @@ export class UnthemedQueryEditor extends PureComponent<Props, State> {
           </div>
         )}
 
-        <Alert title="Grafana Live - Measurements" severity="info">
+        <Alert title="Grafana Live - Measurements" severity="info" style={{ display: 'none' }}>
           This supports real-time event streams in Grafana core. This feature is under heavy development. Expect the
           interfaces and structures to change as this becomes more production ready.
         </Alert>
