@@ -51,16 +51,8 @@ export class AppWrapper extends React.Component<AppWrapperProps, AppWrapperState
     await loadAndInitAngularIfEnabled();
     this.setState({ ready: true });
     $('.preloader').remove();
-
-    // NI fork: Ensure that grafana is loaded within an iframe unless it is running locally
-    if (window.self === window.top && window.location.hostname !== 'localhost') {
-      // Redirect to the iframe-hosted version of grafana, which is located at /dashboards rather than /dashboardhost
-      let newHref = window.location.href.replace(window.location.origin + '/dashboardhost', window.location.origin + '/dashboards');
-      window.location.replace(newHref);
-    } else {
-      // Tell the iframe-host loading indicator to disappear
-      window.parent.postMessage({ type: 'iframeLoaded' }, window.parent.location.origin);
-    }
+    // NI fork: Tells iframe-host loading indicator when to disappear
+    window.parent.postMessage({ type: 'iframeLoaded' }, window.parent.location.origin);
   }
 
   renderRoute = (route: RouteDescriptor) => {

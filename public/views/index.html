@@ -14,6 +14,15 @@
 
     <base href="[[.AppSubUrl]]/" />
 
+    <script>
+      // NI fork: Ensure that grafana is loaded within an iframe unless it is running locally
+      if (window.self === window.top && window.location.hostname !== 'localhost') {
+        // Redirect to the iframe-hosted version of grafana, which is located at /dashboards rather than /dashboardhost
+        let newHref = window.location.href.replace(window.location.origin + '/dashboardhost', window.location.origin + '/dashboards');
+        window.location.replace(newHref);
+      }
+    </script>
+
     <link rel="icon" type="image/png" href="[[.FavIcon]]" />
     <link rel="apple-touch-icon" sizes="180x180" href="[[.AppleTouchIcon]]" />
     <link rel="mask-icon" href="[[.ContentDeliveryURL]]public/img/grafana_mask_icon.svg" color="#F05A28" />
@@ -274,16 +283,8 @@
         var preloader = document.getElementsByClassName("preloader");
         if (preloader.length) {
           preloader[0].className = "preloader preloader--done";
-
-          // NI fork: Ensure that grafana is loaded within an iframe unless it is running locally
-          if (window.self === window.top && window.location.hostname !== 'localhost') {
-            // Redirect to the iframe-hosted version of grafana, which is located at /dashboards rather than /dashboardhost
-            let newHref = window.location.href.replace(window.location.origin + '/dashboardhost', window.location.origin + '/dashboards');
-            window.location.replace(newHref);
-          } else {
-            // Tell the iframe-host loading indicator to disappear
-            window.parent.postMessage({ type: 'iframeLoaded' }, window.parent.location.origin);
-          }
+          // NI fork: Tells iframe-host loading indicator when to disappear
+          window.parent.postMessage({ type: 'iframeLoaded' }, window.parent.location.origin);
         }
       }
 
