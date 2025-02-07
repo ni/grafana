@@ -14,7 +14,7 @@
 
     <base href="[[.AppSubUrl]]/" />
 
-    <script>
+    <script nonce="[[.Nonce]]">
       // NI fork: Ensure that grafana is loaded within an iframe unless it is running locally
       if (window.self === window.top && window.location.hostname !== 'localhost') {
         // Redirect to the iframe-hosted version of grafana, which is located at /dashboards rather than /dashboardhost
