@@ -17,7 +17,7 @@
     <script nonce="[[.Nonce]]">
       // NI fork: Ensure that grafana is loaded within an iframe unless it is running locally
       if (window.self === window.top && window.location.hostname !== 'localhost') {
-        if (!location.href.startsWith(location.origin + '/dashboardhost')) {
+        if (!window.location.href.startsWith(window.location.origin + '/dashboardhost')) {
           console.log('Unexpected location found outside of an iframe. Expected to be hosted at "/dashboardhost"');
         } else {
           // Redirect to the iframe-hosted version of grafana, which is located at /dashboards rather than /dashboardhost
