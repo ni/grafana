@@ -64,9 +64,9 @@ export class AppChromeService {
         if (kioskMode || chromeless) {
           return 0;
         } else if (actions) {
-          return TOP_BAR_LEVEL_HEIGHT * 2;
-        } else {
           return TOP_BAR_LEVEL_HEIGHT;
+        } else {
+          return 0;
         }
       })
     )

@@ -141,7 +141,7 @@ const getStyles = (theme: GrafanaTheme2, hasActions: boolean) => {
     content: css({
       display: 'flex',
       flexDirection: 'column',
-      paddingTop: hasActions ? TOP_BAR_LEVEL_HEIGHT * 2 : TOP_BAR_LEVEL_HEIGHT,
+      paddingTop: hasActions ? TOP_BAR_LEVEL_HEIGHT : 0,
       flexGrow: 1,
       height: 'auto',
     }),
