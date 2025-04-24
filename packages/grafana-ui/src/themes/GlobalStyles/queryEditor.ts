@@ -25,7 +25,7 @@ export function getQueryEditorStyles(theme: GrafanaTheme2) {
       },
     },
     '.query-segment-operator': {
-      color: #009b65 !important,
+      color: 'rgb(0, 155, 101) !important',
     },
     '.tight-form-func': {
       background: theme.colors.background.secondary,

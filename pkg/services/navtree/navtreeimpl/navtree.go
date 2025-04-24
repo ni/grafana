@@ -81,9 +81,9 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
 	hasAccess := ac.HasAccess(s.accessControl, c)
 	treeRoot := &navtree.NavTreeRoot{}
 
-	treeRoot.AddSection(s.getHomeNode(c, prefs))
+	//treeRoot.AddSection(s.getHomeNode(c, prefs))
 
-	if hasAccess(ac.EvalPermission(dashboards.ActionDashboardsRead)) {
+	if hasAccess(ac.EvalPermission(dashboards.ActionDashboardsRead)) && false {
 		starredItemsLinks, err := s.buildStarredItemsNavLinks(c)
 		if err != nil {
 			return nil, err
@@ -130,7 +130,7 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
 		})
 	}
 
-	if hasAccess(ac.EvalPermission(ac.ActionDatasourcesExplore)) {
+	if hasAccess(ac.EvalPermission(ac.ActionDatasourcesExplore)) && false {
 		drilldownChildNavLinks := s.buildDrilldownNavLinks(c)
 		treeRoot.AddSection(&navtree.NavLink{
 			Text:       "Drilldown",
@@ -144,12 +144,12 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
 		})
 	}
 
-	if s.cfg.ProfileEnabled && c.IsSignedIn {
+	if s.cfg.ProfileEnabled && c.IsSignedIn && false {
 		treeRoot.AddSection(s.getProfileNode(c))
 	}
 
 	_, uaIsDisabledForOrg := s.cfg.UnifiedAlerting.DisabledOrgs[c.SignedInUser.GetOrgID()]
-	uaVisibleForOrg := s.cfg.UnifiedAlerting.IsEnabled() && !uaIsDisabledForOrg
+	uaVisibleForOrg := s.cfg.UnifiedAlerting.IsEnabled() && !uaIsDisabledForOrg && false
 
 	if uaVisibleForOrg {
 		if alertingSection := s.buildAlertNavLinks(c); alertingSection != nil {
@@ -163,7 +163,7 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
 
 	orgAdminNode, err := s.getAdminNode(c)
 
-	if orgAdminNode != nil && len(orgAdminNode.Children) > 0 {
+	if orgAdminNode != nil && len(orgAdminNode.Children) > 0 && false {
 		treeRoot.AddSection(orgAdminNode)
 	} else if err != nil {
 		return nil, err
@@ -184,7 +184,7 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
 		treeRoot.RemoveSectionByID(navtree.NavIDCfg)
 	}
 
-	if s.features.IsEnabled(c.Req.Context(), featuremgmt.FlagPinNavItems) && c.IsSignedIn {
+	if s.features.IsEnabled(c.Req.Context(), featuremgmt.FlagPinNavItems) && c.IsSignedIn && false {
 		treeRoot.AddSection(&navtree.NavLink{
 			Text:           "Bookmarks",
 			Id:             navtree.NavIDBookmarks,
