@@ -23,7 +23,7 @@ const getStyles = (theme: GrafanaTheme2) => {
   return {
     actionsBar: css({
       alignItems: 'center',
-      backgroundColor: 'rgb(244, 245, 245)', // NI fork: do not want header to be white, but share same color as page content
+      backgroundColor: theme.colors.background.primary,
       borderBottom: `1px solid ${theme.colors.border.weak}`,
       display: 'flex',
       height: TOP_BAR_LEVEL_HEIGHT,
