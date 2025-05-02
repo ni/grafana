@@ -62,7 +62,7 @@ git reset --hard v9.0.5
 
 Cherry-pick all of our NI-specific commits from the archive branch. The first commit should have the message:
 
-_Add "iframeNavigate" postMessage calls_.
+_init ni/grafana fork_.
 
 ```
 # git cherry-pick X^..Y where X is the first commit and Y is the latest on the archive branch you created above
@@ -84,11 +84,11 @@ First, make sure to read and follow the directions of the [Developer Guide](./co
 
 As of Grafana 11, you should be using a later version of node (e.g. 22), as the noted version in the [linked blog](https://grafana.com/blog/2021/03/03/how-to-set-up-a-grafana-development-environment-on-a-windows-pc-using-wsl/) of 14.15.5 will fail to compile the backend and frontend code. Using a newer version of Go (more recent than the noted 1.15) may also be needed (e.g. 1.23).
 
-In Docker Desktop make sure to enable the WSL distribution you intend to use (e.g. Ubuntu 24.04.2).
+In Docker Desktop make sure to enable the WSL distribution you intend to use (via Settings->Resources->WSL integration).
 
 #### Compiling/running backend
 
-In Visual Studio Code, you may want to add the WSL extension (Microsoft). In an Ubuntu (or appropriate WSL distro) terminal, you may have to run `make run` for the first compile of the backend (which is a long process). Successive compiles, after you alter either configuration files (like `defaults.ini`, or more appropriately `custom.ini`), or  backend code (e.g. Go files in the `pkg` folder directory), can normally be successful using **`make run-go`**, which is a _much_ faster compile process.
+In Visual Studio Code, you may want to add the WSL extension (Microsoft). In an Ubuntu (or appropriate WSL distro) terminal, you may have to run `make run` for the first compile of the backend (which is a long process). Successive compiles, after you alter either configuration files (like `defaults.ini`, or more appropriately `custom.ini`), or  backend code (e.g. Go files in the `pkg` folder directory) can normally be successful using **`make run-go`**, which is a _much_ faster compile process.
 
 Generally, you will want to use the [**`ni.ini`** configuration file](./conf/ni.ini) when starting the backend, which has settings to enable it to run within the SLE Grafana web app. To do this, you _must_ copy it to a file named **`custom.ini`** in the same directory. This file will be ignored by Github.
 
