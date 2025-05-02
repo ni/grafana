@@ -203,13 +203,14 @@ export class AppChromeService {
     });
   };
 
-  public setMegaMenuDocked = (newDockedState: boolean, updatePersistedState = true) => {
+  // NI fork: disable docked menu
+  public setMegaMenuDocked = (_newDockedState: boolean, updatePersistedState = true) => {
     if (updatePersistedState) {
-      store.set(DOCKED_LOCAL_STORAGE_KEY, newDockedState);
+      store.set(DOCKED_LOCAL_STORAGE_KEY, false);
     }
-    reportInteraction('grafana_mega_menu_docked', { state: newDockedState });
+    reportInteraction('grafana_mega_menu_docked', { state: false });
     this.update({
-      megaMenuDocked: newDockedState,
+      megaMenuDocked: false,
     });
   };
 
