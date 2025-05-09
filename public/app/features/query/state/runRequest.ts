@@ -236,6 +236,7 @@ export function callQueryMethod(
   }
 
   // Otherwise it is a standard datasource request
-  const returnVal = queryFunction ? queryFunction(request) : datasource.query(request);
+  const callQueryFunction = queryFunction && datasource.type !== 'ni-slworkspace-datasource';
+  const returnVal = callQueryFunction ? queryFunction(request) : datasource.query(request);
   return from(returnVal);
 }
