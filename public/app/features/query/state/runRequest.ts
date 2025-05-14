@@ -236,7 +236,7 @@ export function callQueryMethod(
   }
 
   // Otherwise it is a standard datasource request
-  const callQueryFunction = queryFunction && datasource.type !== 'ni-slworkspace-datasource';
+  const callQueryFunction = queryFunction && !(datasource.type as string).startsWith('ni-sl');
   const returnVal = callQueryFunction ? queryFunction(request) : datasource.query(request);
   return from(returnVal);
 }
