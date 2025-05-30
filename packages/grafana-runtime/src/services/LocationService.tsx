@@ -86,6 +86,7 @@ export class HistoryWrapper implements LocationService {
 
     if (replace) {
       this.history.replace(updatedUrl, this.history.location.state);
+      window.location.replace(this.history.createHref(updatedUrl)); // NI fork: Ensure the browser URL is updated
     } else {
       this.history.push(updatedUrl, this.history.location.state);
     }
