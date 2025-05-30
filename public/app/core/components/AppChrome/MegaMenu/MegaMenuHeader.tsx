@@ -6,6 +6,7 @@ import { useGrafana } from 'app/core/context/GrafanaContext';
 import { t } from 'app/core/internationalization';
 
 import { TOP_BAR_LEVEL_HEIGHT } from '../types';
+import { OrganizationSwitcher } from '../OrganizationSwitcher/OrganizationSwitcher';
 
 export interface Props {
   handleMegaMenu: () => void;
@@ -25,7 +26,6 @@ export function MegaMenuHeader({ handleMegaMenu, handleDockedMenu, onClose }: Pr
   return (
     <div className={styles.header}>
       <Stack alignItems="center" minWidth={0} gap={0.25}>
-        { // NI fork: Simple icon button is preferred over ToolbarButton, and removes bran
         <IconButton
             onClick={handleMegaMenu}
             tooltip={t('navigation.megamenu.close', 'Close menu')}
@@ -33,16 +33,7 @@ export function MegaMenuHeader({ handleMegaMenu, handleDockedMenu, onClose }: Pr
             style={{ transform: 'rotate(180deg)' }}
           >
         </IconButton>
-        /* <ToolbarButton
-          narrow
-          id={MEGA_MENU_HEADER_TOGGLE_ID}
-          onClick={handleMegaMenu}
-          tooltip={t('navigation.megamenu.close', 'Close menu')}
-        >
-          <Branding.MenuLogo className={styles.img} />
-        </ToolbarButton>
-        <OrganizationSwitcher /> */
-        }
+        <OrganizationSwitcher />
       </Stack>
       {/* <IconButton
         id={DOCK_MENU_BUTTON_ID}
