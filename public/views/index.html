@@ -24,6 +24,11 @@
           let newHref = window.location.href.includes('/dashboardhost/dashboardhost')
             ? window.location.href.replace(window.location.origin + '/dashboardhost/dashboardhost', window.location.origin + '/dashboards')
             : window.location.href.replace(window.location.origin + '/dashboardhost', window.location.origin + '/dashboards');
+
+          if (!newHref.includes('orgId')) {
+              newHref += (newHref.includes('?') ? '&' : '?') + 'orgId=1';
+          }
+
           console.log("Redirecting to: " + newHref);
           window.location.replace(newHref);
         }
