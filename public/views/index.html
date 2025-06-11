@@ -21,15 +21,7 @@
           console.log('Unexpected location found outside of an iframe. Expected to be hosted at "/dashboardhost"');
         } else {
           // Redirect to the iframe-hosted version of grafana, which is located at /dashboards rather than /dashboardhost
-          let newHref = window.location.href.includes('/dashboardhost/dashboardhost')
-            ? window.location.href.replace(window.location.origin + '/dashboardhost/dashboardhost', window.location.origin + '/dashboards')
-            : window.location.href.replace(window.location.origin + '/dashboardhost', window.location.origin + '/dashboards');
-
-          if (!newHref.includes('orgId')) {
-              newHref += (newHref.includes('?') ? '&' : '?') + 'orgId=1';
-          }
-
-          console.log("Redirecting to: " + newHref);
+          let newHref = window.location.href.replace(window.location.origin + '/dashboardhost', window.location.origin + '/dashboards');
           window.location.replace(newHref);
         }
       }
