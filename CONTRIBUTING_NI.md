@@ -75,6 +75,7 @@ Once the cherry pick is completed, force push main (`git push -f`). If you are n
 If you find you need to update `main` multiple times during the same release upgrade process (you may find issues that need resolution after initial attempt), or as part of the cherry-pick process you inadvertently introduced new commits, you can/should collapse those commits into a single commit (the most recent commit) using `git rebase -i (commit before first new commit)`.
 
 ### Security scanning with Snyk
+
 This repository uses [Snyk](https://snyk.io/) for security scanning to identify and fix vulnerabilities in code before they reach production. Snyk provides Static Application Security Testing (SAST) that scans your code for security issues as you develop.
 
 - **IDE integration**: Install the Snyk extension for [Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=snyk-security.snyk-vulnerability-scanner) or [Visual Studio](https://marketplace.visualstudio.com/items?itemName=snyk-security.snyk-vulnerability-scanner-vs-2022) to get real-time security feedback while writing code. To suggest the Snyk extension to contributors, add `.vscode/extensions.json` or `.vsconfig` files to your project root. The VSCode Snyk extension has a richer feature set and is the preferred IDE for working with Snyk.
