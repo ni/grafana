@@ -1,13 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { PanelProps, DataFrameType, DashboardCursorSync } from '@grafana/data';
-import { PanelDataErrorView } from '@grafana/runtime';
+import { PanelDataErrorView, getAppEvents } from '@grafana/runtime';
 import { TooltipDisplayMode, VizOrientation } from '@grafana/schema';
 import { EventBusPlugin, KeyboardPlugin, TooltipPlugin2, usePanelContext } from '@grafana/ui';
 import { TimeRange2, TooltipHoverMode } from '@grafana/ui/src/components/uPlot/plugins/TooltipPlugin2';
 import { TimeSeries } from 'app/core/components/TimeSeries/TimeSeries';
 import { config } from 'app/core/config';
 
+import { NIRefreshDashboardEvent } from 'app/types/events';
 import { TimeSeriesTooltip } from './TimeSeriesTooltip';
 import { Options } from './panelcfg.gen';
 import { AnnotationsPlugin2 } from './plugins/AnnotationsPlugin2';
@@ -60,6 +61,13 @@ export const TimeSeriesPanel = ({
   const enableAnnotationCreation = Boolean(canAddAnnotations && canAddAnnotations());
   const [newAnnotationRange, setNewAnnotationRange] = useState<TimeRange2 | null>(null);
   const cursorSync = sync?.() ?? DashboardCursorSync.Off;
+
+  // TEST: Publish NIRefreshDashboardEvent to verify it's being caught
+  // Remove this after testing
+  useEffect(() => {
+    console.log('🚀 TimeSeriesPanel publishing NIRefreshDashboardEvent (TEST)');
+    getAppEvents().publish(new NIRefreshDashboardEvent());
+  }, []);
 
   if (!frames || suggestions) {
     return (

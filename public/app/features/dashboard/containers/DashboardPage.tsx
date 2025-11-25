@@ -20,7 +20,7 @@ import { dashboardWatcher } from 'app/features/live/dashboard/dashboardWatcher';
 import { AngularDeprecationNotice } from 'app/features/plugins/angularDeprecation/AngularDeprecationNotice';
 import { AngularMigrationNotice } from 'app/features/plugins/angularDeprecation/AngularMigrationNotice';
 import { KioskMode, StoreState } from 'app/types';
-import { PanelEditEnteredEvent, PanelEditExitedEvent } from 'app/types/events';
+import { NIRefreshDashboardEvent, PanelEditEnteredEvent, PanelEditExitedEvent } from 'app/types/events';
 
 import { cancelVariables, templateVarsChangedInUrl } from '../../variables/state/actions';
 import { findTemplateVarChanges } from '../../variables/utils';
@@ -44,6 +44,8 @@ import { DashboardPageRouteParams, DashboardPageRouteSearchParams } from './type
 
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
+import { appEvents } from 'app/core/core';
+import { Subscription } from 'rxjs';
 
 export const mapStateToProps = (state: StoreState) => ({
   initPhase: state.dashboard.initPhase,
@@ -119,6 +121,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
 export class UnthemedDashboardPage extends PureComponent<Props, State> {
   declare context: GrafanaContextType;
   static contextType = GrafanaContext;
+  private eventSubs = new Subscription();
 
   private forceRouteReloadCounter = 0;
   state: State = this.getCleanState();
@@ -137,9 +140,18 @@ export class UnthemedDashboardPage extends PureComponent<Props, State> {
   componentDidMount() {
     this.initDashboard();
     this.forceRouteReloadCounter = (this.props.location.state as any)?.routeReloadCounter || 0;
+
+    console.log('DashboardPage mounted - subscribing to NIRefreshDashboardEvent');
+    this.eventSubs.add(
+      appEvents.subscribe(NIRefreshDashboardEvent, () => {
+        console.log('NIRefreshDashboardEvent received in DashboardPage!');
+        getTimeSrv().refreshTimeModel();
+      })
+    );
   }
 
   componentWillUnmount() {
+    this.eventSubs.unsubscribe();
     this.closeDashboard();
   }
 
