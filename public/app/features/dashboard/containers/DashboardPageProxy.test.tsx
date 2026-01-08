@@ -5,6 +5,7 @@ import { render } from 'test/test-utils';
 
 import { selectors } from '@grafana/e2e-selectors';
 import { config, locationService } from '@grafana/runtime';
+import { appEvents } from 'app/core/core';
 import {
   HOME_DASHBOARD_CACHE_KEY,
   getDashboardScenePageStateManager,
@@ -14,10 +15,19 @@ import {
   setupLoadDashboardRuntimeErrorMock,
 } from 'app/features/dashboard-scene/utils/test-utils';
 import { DashboardDTO, DashboardRoutes } from 'app/types';
+import { NIRefreshDashboardEvent } from 'app/types/events';
 
 import { DashboardLoaderSrv, setDashboardLoaderSrv } from '../services/DashboardLoaderSrv';
 
 import DashboardPageProxy, { DashboardPageProxyProps } from './DashboardPageProxy';
+
+const mockRefreshTimeModel = jest.fn();
+
+jest.mock('../services/TimeSrv', () => ({
+  getTimeSrv: jest.fn(() => ({
+    refreshTimeModel: mockRefreshTimeModel,
+  })),
+}));
 
 const dashMock: DashboardDTO = {
   dashboard: {
@@ -278,6 +288,104 @@ describe('DashboardPageProxy', () => {
 
       expect(await screen.findByTestId('dashboard-page-error')).toBeInTheDocument();
       expect(await screen.findByTestId('dashboard-page-error')).toHaveTextContent('Runtime error');
+    });
+  });
+
+  describe('NIRefreshDashboardEvent subscription', () => {
+    beforeEach(() => {
+      config.featureToggles.dashboardSceneForViewers = false;
+      mockRefreshTimeModel.mockClear();
+      getDashboardScenePageStateManager().setDashboardCache('test-uid', dashMock);
+    });
+
+    it('should subscribe to NIRefreshDashboardEvent on mount', async () => {
+      const subscribeSpy = jest.spyOn(appEvents, 'subscribe');
+
+      act(() => {
+        setup({
+          route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
+          uid: 'test-uid',
+        });
+      });
+
+      await waitFor(() => {
+        expect(subscribeSpy).toHaveBeenCalledWith(NIRefreshDashboardEvent, expect.any(Function));
+      });
+
+      subscribeSpy.mockRestore();
+    });
+
+    it('should call refreshTimeModel when NIRefreshDashboardEvent is published', async () => {
+      act(() => {
+        setup({
+          route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
+          uid: 'test-uid',
+        });
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('dashboard-scene-page')).not.toBeInTheDocument();
+      });
+
+      act(() => {
+        appEvents.publish(new NIRefreshDashboardEvent());
+      });
+
+      await waitFor(() => {
+        expect(mockRefreshTimeModel).toHaveBeenCalled();
+      });
+    });
+
+    it('should unsubscribe from NIRefreshDashboardEvent on unmount', async () => {
+      const unsubscribeSpy = jest.fn();
+      const subscribeSpy = jest.spyOn(appEvents, 'subscribe').mockReturnValue({
+        unsubscribe: unsubscribeSpy,
+      });
+
+      const { unmount } = setup({
+        route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
+        uid: 'test-uid',
+      });
+
+      await waitFor(() => {
+        expect(subscribeSpy).toHaveBeenCalled();
+      });
+
+      act(() => {
+        unmount();
+      });
+
+      expect(unsubscribeSpy).toHaveBeenCalled();
+
+      subscribeSpy.mockRestore();
+    });
+
+    it('should subscribe regardless of feature toggle state', async () => {
+      config.featureToggles.dashboardSceneForViewers = true;
+      getDashboardScenePageStateManager().setDashboardCache('test-uid', dashMock);
+
+      const subscribeSpy = jest.spyOn(appEvents, 'subscribe');
+
+      act(() => {
+        setup({
+          route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
+          uid: 'test-uid',
+        });
+      });
+
+      await waitFor(() => {
+        expect(subscribeSpy).toHaveBeenCalledWith(NIRefreshDashboardEvent, expect.any(Function));
+      });
+
+      act(() => {
+        appEvents.publish(new NIRefreshDashboardEvent());
+      });
+
+      await waitFor(() => {
+        expect(mockRefreshTimeModel).toHaveBeenCalled();
+      });
+
+      subscribeSpy.mockRestore();
     });
   });
 });
