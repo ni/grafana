@@ -5,9 +5,9 @@ import { useAsync } from 'react-use';
 import { config } from '@grafana/runtime';
 import { appEvents } from 'app/core/core';
 import { GrafanaRouteComponentProps } from 'app/core/navigation/types';
+import { getTimeSrv } from 'app/features/dashboard/services/TimeSrv';
 import DashboardScenePage from 'app/features/dashboard-scene/pages/DashboardScenePage';
 import { getDashboardScenePageStateManager } from 'app/features/dashboard-scene/pages/DashboardScenePageStateManager';
-import { getTimeSrv } from 'app/features/dashboard/services/TimeSrv';
 import { DashboardRoutes } from 'app/types';
 import { NIRefreshDashboardEvent } from 'app/types/events';
 

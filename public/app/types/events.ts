@@ -196,7 +196,7 @@ export class DashboardSavedEvent extends BusEventBase {
 }
 
 export class NIRefreshDashboardEvent extends BusEventBase {
-  static type = "ni-refresh-dashboard";
+  static type = 'ni-refresh-dashboard';
 }
 
 export class AnnotationQueryStarted extends BusEventWithPayload<AnnotationQuery> {
