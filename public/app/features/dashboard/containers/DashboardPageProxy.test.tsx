@@ -291,31 +291,14 @@ describe('DashboardPageProxy', () => {
     });
   });
 
-  describe('NIRefreshDashboardEvent subscription', () => {
+  describe('NIRefreshDashboardEvent', () => {
     beforeEach(() => {
       config.featureToggles.dashboardSceneForViewers = false;
       mockRefreshTimeModel.mockClear();
       getDashboardScenePageStateManager().setDashboardCache('test-uid', dashMock);
     });
 
-    it('should subscribe to NIRefreshDashboardEvent on mount', async () => {
-      const subscribeSpy = jest.spyOn(appEvents, 'subscribe');
-
-      act(() => {
-        setup({
-          route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
-          uid: 'test-uid',
-        });
-      });
-
-      await waitFor(() => {
-        expect(subscribeSpy).toHaveBeenCalledWith(NIRefreshDashboardEvent, expect.any(Function));
-      });
-
-      subscribeSpy.mockRestore();
-    });
-
-    it('should call refreshTimeModel when NIRefreshDashboardEvent is published', async () => {
+    it('should refresh the dashboard when NIRefreshDashboardEvent is emitted', async () => {
       act(() => {
         setup({
           route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
@@ -332,39 +315,36 @@ describe('DashboardPageProxy', () => {
       });
 
       await waitFor(() => {
-        expect(mockRefreshTimeModel).toHaveBeenCalled();
+        expect(mockRefreshTimeModel).toHaveBeenCalledTimes(1);
       });
     });
 
-    it('should unsubscribe from NIRefreshDashboardEvent on unmount', async () => {
-      const unsubscribeSpy = jest.fn();
-      const subscribeSpy = jest.spyOn(appEvents, 'subscribe').mockReturnValue({
-        unsubscribe: unsubscribeSpy,
-      });
-
-      const { unmount } = setup({
-        route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
-        uid: 'test-uid',
+    it('should refresh the dashboard multiple times when event is emitted multiple times', async () => {
+      act(() => {
+        setup({
+          route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
+          uid: 'test-uid',
+        });
       });
 
       await waitFor(() => {
-        expect(subscribeSpy).toHaveBeenCalled();
+        expect(screen.queryByTestId('dashboard-scene-page')).not.toBeInTheDocument();
       });
 
       act(() => {
-        unmount();
+        appEvents.publish(new NIRefreshDashboardEvent());
+        appEvents.publish(new NIRefreshDashboardEvent());
+        appEvents.publish(new NIRefreshDashboardEvent());
       });
 
-      expect(unsubscribeSpy).toHaveBeenCalled();
-
-      subscribeSpy.mockRestore();
+      await waitFor(() => {
+        expect(mockRefreshTimeModel).toHaveBeenCalledTimes(3);
+      });
     });
 
-    it('should subscribe regardless of feature toggle state', async () => {
+    it('should refresh dashboard when using DashboardScenePage and event is emitted', async () => {
       config.featureToggles.dashboardSceneForViewers = true;
       getDashboardScenePageStateManager().setDashboardCache('test-uid', dashMock);
-
-      const subscribeSpy = jest.spyOn(appEvents, 'subscribe');
 
       act(() => {
         setup({
@@ -374,7 +354,7 @@ describe('DashboardPageProxy', () => {
       });
 
       await waitFor(() => {
-        expect(subscribeSpy).toHaveBeenCalledWith(NIRefreshDashboardEvent, expect.any(Function));
+        expect(screen.queryByTestId('dashboard-scene-page')).toBeInTheDocument();
       });
 
       act(() => {
@@ -382,10 +362,8 @@ describe('DashboardPageProxy', () => {
       });
 
       await waitFor(() => {
-        expect(mockRefreshTimeModel).toHaveBeenCalled();
+        expect(mockRefreshTimeModel).toHaveBeenCalledTimes(1);
       });
-
-      subscribeSpy.mockRestore();
     });
   });
 });
