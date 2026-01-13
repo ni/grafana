@@ -293,76 +293,107 @@ describe('DashboardPageProxy', () => {
 
   describe('NIRefreshDashboardEvent', () => {
     beforeEach(() => {
-      config.featureToggles.dashboardSceneForViewers = false;
       mockRefreshTimeModel.mockClear();
       getDashboardScenePageStateManager().setDashboardCache('test-uid', dashMock);
     });
 
-    it('should refresh the dashboard when NIRefreshDashboardEvent is emitted', async () => {
-      act(() => {
-        setup({
-          route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
-          uid: 'test-uid',
+    describe('when dashboard scenes is disabled', () => {
+      beforeEach(() => {
+        config.featureToggles.dashboardSceneForViewers = false;
+      });
+
+      it('should refresh the dashboard when NIRefreshDashboardEvent is emitted', async () => {
+        act(() => {
+          setup({
+            route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
+            uid: 'test-uid',
+          });
+        });
+
+        await waitFor(() => {
+          expect(screen.queryByTestId('dashboard-scene-page')).not.toBeInTheDocument();
+        });
+
+        act(() => {
+          appEvents.publish(new NIRefreshDashboardEvent());
+        });
+
+        await waitFor(() => {
+          expect(mockRefreshTimeModel).toHaveBeenCalledTimes(1);
         });
       });
 
-      await waitFor(() => {
-        expect(screen.queryByTestId('dashboard-scene-page')).not.toBeInTheDocument();
-      });
+      it('should refresh the dashboard multiple times when event is emitted multiple times', async () => {
+        act(() => {
+          setup({
+            route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
+            uid: 'test-uid',
+          });
+        });
 
-      act(() => {
-        appEvents.publish(new NIRefreshDashboardEvent());
-      });
+        await waitFor(() => {
+          expect(screen.queryByTestId('dashboard-scene-page')).not.toBeInTheDocument();
+        });
 
-      await waitFor(() => {
-        expect(mockRefreshTimeModel).toHaveBeenCalledTimes(1);
+        act(() => {
+          appEvents.publish(new NIRefreshDashboardEvent());
+          appEvents.publish(new NIRefreshDashboardEvent());
+          appEvents.publish(new NIRefreshDashboardEvent());
+        });
+
+        await waitFor(() => {
+          expect(mockRefreshTimeModel).toHaveBeenCalledTimes(3);
+        });
       });
     });
 
-    it('should refresh the dashboard multiple times when event is emitted multiple times', async () => {
-      act(() => {
-        setup({
-          route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
-          uid: 'test-uid',
+    describe('when dashboard scenes is enabled', () => {
+      beforeEach(() => {
+        config.featureToggles.dashboardSceneForViewers = true;
+      });
+
+      it('should refresh dashboard when NIRefreshDashboardEvent is emitted', async () => {
+        act(() => {
+          setup({
+            route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
+            uid: 'test-uid',
+          });
+        });
+
+        await waitFor(() => {
+          expect(screen.queryByTestId('dashboard-scene-page')).toBeInTheDocument();
+        });
+
+        act(() => {
+          appEvents.publish(new NIRefreshDashboardEvent());
+        });
+
+        await waitFor(() => {
+          expect(mockRefreshTimeModel).toHaveBeenCalledTimes(1);
         });
       });
 
-      await waitFor(() => {
-        expect(screen.queryByTestId('dashboard-scene-page')).not.toBeInTheDocument();
-      });
-
-      act(() => {
-        appEvents.publish(new NIRefreshDashboardEvent());
-        appEvents.publish(new NIRefreshDashboardEvent());
-        appEvents.publish(new NIRefreshDashboardEvent());
-      });
-
-      await waitFor(() => {
-        expect(mockRefreshTimeModel).toHaveBeenCalledTimes(3);
-      });
-    });
-
-    it('should refresh dashboard when using DashboardScenePage and event is emitted', async () => {
-      config.featureToggles.dashboardSceneForViewers = true;
-      getDashboardScenePageStateManager().setDashboardCache('test-uid', dashMock);
-
-      act(() => {
-        setup({
-          route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
-          uid: 'test-uid',
+      it('should refresh the dashboard multiple times when event is emitted multiple times', async () => {
+        act(() => {
+          setup({
+            route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
+            uid: 'test-uid',
+          });
         });
-      });
 
-      await waitFor(() => {
-        expect(screen.queryByTestId('dashboard-scene-page')).toBeInTheDocument();
-      });
+        await waitFor(() => {
+          expect(screen.queryByTestId('dashboard-scene-page')).toBeInTheDocument();
+        });
 
-      act(() => {
-        appEvents.publish(new NIRefreshDashboardEvent());
-      });
+        act(() => {
+          appEvents.publish(new NIRefreshDashboardEvent());
+          appEvents.publish(new NIRefreshDashboardEvent());
+          appEvents.publish(new NIRefreshDashboardEvent());
+        });
 
-      await waitFor(() => {
-        expect(mockRefreshTimeModel).toHaveBeenCalledTimes(1);
+        await waitFor(() => {
+          expect(mockRefreshTimeModel).toHaveBeenCalledTimes(3);
+        });
       });
     });
   });
