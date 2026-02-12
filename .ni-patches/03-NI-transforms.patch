@@ -1,0 +1,417 @@
+diff --git a/packages/grafana-data/src/transformations/transformers.ts b/packages/grafana-data/src/transformations/transformers.ts
+index 1edebb4933e..9cafcbcd3e4 100644
+--- a/packages/grafana-data/src/transformations/transformers.ts
++++ b/packages/grafana-data/src/transformations/transformers.ts
+@@ -25,6 +25,7 @@ import { renameFieldsTransformer } from './transformers/rename';
+ import { renameByRegexTransformer } from './transformers/renameByRegex';
+ import { seriesToRowsTransformer } from './transformers/seriesToRows';
+ import { sortByTransformer } from './transformers/sortBy';
++import { splitByTransformer } from './transformers/splitBy';
+ import { transposeTransformer } from './transformers/transpose';
+ 
+ export const standardTransformers = {
+@@ -50,6 +51,7 @@ export const standardTransformers = {
+   ensureColumnsTransformer,
+   groupByTransformer,
+   sortByTransformer,
++  splitByTransformer,
+   mergeTransformer,
+   renameByRegexTransformer,
+   histogramTransformer,
+diff --git a/packages/grafana-data/src/transformations/transformers/ids.ts b/packages/grafana-data/src/transformations/transformers/ids.ts
+index cc2b76fae69..55f6ac96473 100644
+--- a/packages/grafana-data/src/transformations/transformers/ids.ts
++++ b/packages/grafana-data/src/transformations/transformers/ids.ts
+@@ -21,6 +21,7 @@ export enum DataTransformerID {
+   noop = 'noop',
+   ensureColumns = 'ensureColumns',
+   groupBy = 'groupBy',
++  splitBy = 'splitBy',
+   sortBy = 'sortBy',
+   histogram = 'histogram',
+   configFromData = 'configFromData',
+diff --git a/packages/grafana-data/src/transformations/transformers/renameByRegex.ts b/packages/grafana-data/src/transformations/transformers/renameByRegex.ts
+index 1a1b0e81da6..8afdefa8448 100644
+--- a/packages/grafana-data/src/transformations/transformers/renameByRegex.ts
++++ b/packages/grafana-data/src/transformations/transformers/renameByRegex.ts
+@@ -42,15 +42,15 @@ export const renameByRegexTransformer: DataTransformerInfo<RenameByRegexTransfor
+         if (!Array.isArray(data) || data.length === 0) {
+           return data;
+         }
+-        return data.map(renameFieldsByRegex(options));
++        return data.map(renameFieldsByRegex(options, data));
+       })
+     ),
+ };
+ 
+-const renameFieldsByRegex = (options: RenameByRegexTransformerOptions) => (frame: DataFrame) => {
++const renameFieldsByRegex = (options: RenameByRegexTransformerOptions, data: DataFrame[]) => (frame: DataFrame) => {
+   const regex = stringToJsRegex(options.regex);
+   const fields = frame.fields.map((field) => {
+-    const displayName = getFieldDisplayName(field, frame);
++    const displayName = getFieldDisplayName(field, frame, data);
+     if (!regex.test(displayName)) {
+       return field;
+     }
+diff --git a/packages/grafana-data/src/transformations/transformers/splitBy.test.ts b/packages/grafana-data/src/transformations/transformers/splitBy.test.ts
+new file mode 100644
+index 00000000000..07214ecc3f4
+--- /dev/null
++++ b/packages/grafana-data/src/transformations/transformers/splitBy.test.ts
+@@ -0,0 +1,149 @@
++import { DataTransformerConfig } from '@grafana/data';
++
++import { toDataFrame } from '../../dataframe/processDataFrame';
++import { FieldType } from '../../types/dataFrame';
++import { mockTransformationsRegistry } from '../../utils/tests/mockTransformationsRegistry';
++import { transformDataFrame } from '../transformDataFrame';
++
++import { DataTransformerID } from './ids';
++import { splitByTransformer, SplitByTransformerOptions } from './splitBy';
++
++describe('SplitBy transformer', () => {
++  beforeAll(() => {
++    mockTransformationsRegistry([splitByTransformer]);
++  });
++
++  it('should not apply transformation when # of frames > 1', async () => {
++    const testSeries = [
++      {
++        name: 'A',
++        fields: [
++          { name: 'time', type: FieldType.time, values: [3000, 4000, 5000] },
++          { name: 'group', type: FieldType.string, values: ['one', 'two', 'two'] },
++          { name: 'values', type: FieldType.number, values: [1, 2, 2] },
++        ],
++      },
++      {
++        name: 'B',
++        fields: [
++          { name: 'time', type: FieldType.time, values: [6000, 7000, 8000] },
++          { name: 'group', type: FieldType.string, values: ['three', 'three', 'three'] },
++          { name: 'values', type: FieldType.number, values: [3, 3, 3] },
++        ],
++      },
++    ].map(toDataFrame);
++
++    const cfg: DataTransformerConfig<SplitByTransformerOptions> = {
++      id: DataTransformerID.splitBy,
++      options: {
++        field: 'group',
++      },
++    };
++
++    await expect(transformDataFrame([cfg], testSeries)).toEmitValuesWith((received) => {
++      expect(received[0]).toBe(testSeries);
++    });
++  });
++
++  it('should not apply transformation selected field does not exist', async () => {
++    const testSeries = toDataFrame({
++      name: 'A',
++      fields: [
++        { name: 'time', type: FieldType.time, values: [3000, 4000, 5000] },
++        { name: 'group', type: FieldType.string, values: ['one', 'two', 'two'] },
++        { name: 'values', type: FieldType.number, values: [1, 2, 2] },
++      ],
++    });
++
++    const cfg: DataTransformerConfig<SplitByTransformerOptions> = {
++      id: DataTransformerID.splitBy,
++      options: {
++        field: 'category',
++      },
++    };
++
++    await expect(transformDataFrame([cfg], [testSeries])).toEmitValuesWith((received) => {
++      expect(received[0][0]).toBe(testSeries);
++    });
++  });
++
++  it('should split by group column', async () => {
++    const testSeries = toDataFrame({
++      name: 'Series A',
++      refId: 'A',
++      fields: [
++        { name: 'time', type: FieldType.time, values: [3000, 4000, 5000, 6000, 7000, 8000] },
++        { name: 'group', type: FieldType.string, values: ['one', 'two', 'two', 'three', 'three', 'three'] },
++        { name: 'values', type: FieldType.number, values: [1, 2, 2, 3, 3, 3], config: { unit: 'm' } },
++      ],
++    });
++
++    const cfg: DataTransformerConfig<SplitByTransformerOptions> = {
++      id: DataTransformerID.splitBy,
++      options: {
++        field: 'group',
++      },
++    };
++
++    await expect(transformDataFrame([cfg], [testSeries])).toEmitValuesWith((received) => {
++      expect(received[0]).toEqual(
++        expect.arrayContaining([
++          expect.objectContaining({
++            name: 'one',
++            refId: 'A',
++            fields: [
++              {
++                name: 'time',
++                type: FieldType.time,
++                values: [3000],
++                config: {},
++              },
++              {
++                name: 'values',
++                type: FieldType.number,
++                values: [1],
++                config: { unit: 'm' },
++              },
++            ],
++          }),
++          expect.objectContaining({
++            name: 'two',
++            refId: 'A',
++            fields: [
++              {
++                name: 'time',
++                type: FieldType.time,
++                values: [4000, 5000],
++                config: {},
++              },
++              {
++                name: 'values',
++                type: FieldType.number,
++                values: [2, 2],
++                config: { unit: 'm' },
++              },
++            ],
++          }),
++          expect.objectContaining({
++            name: 'three',
++            refId: 'A',
++            fields: [
++              {
++                name: 'time',
++                type: FieldType.time,
++                values: [6000, 7000, 8000],
++                config: {},
++              },
++              {
++                name: 'values',
++                type: FieldType.number,
++                values: [3, 3, 3],
++                config: { unit: 'm' },
++              },
++            ],
++          }),
++        ])
++      );
++    });
++  });
++});
+diff --git a/packages/grafana-data/src/transformations/transformers/splitBy.ts b/packages/grafana-data/src/transformations/transformers/splitBy.ts
+new file mode 100644
+index 00000000000..3f5152344ee
+--- /dev/null
++++ b/packages/grafana-data/src/transformations/transformers/splitBy.ts
+@@ -0,0 +1,65 @@
++import { without } from 'lodash';
++import { map } from 'rxjs/operators';
++
++import { DataFrame } from '../../types/dataFrame';
++import { SynchronousDataTransformerInfo } from '../../types/transformations';
++import { fieldMatchers } from '../matchers';
++import { FieldMatcherID } from '../matchers/ids';
++
++import { DataTransformerID } from './ids';
++
++export interface SplitByTransformerOptions {
++  /**
++   * The field on which to split the frame
++   */
++  field: string;
++}
++
++export const splitByTransformer: SynchronousDataTransformerInfo<SplitByTransformerOptions> = {
++  id: DataTransformerID.splitBy,
++  name: 'Split by',
++  description: "Split a data frame into multiple frames grouped by a field's values",
++  defaultOptions: {
++    field: '',
++  },
++
++  operator: (options, ctx) => (source) =>
++    source.pipe(map((data) => splitByTransformer.transformer(options, ctx)(data))),
++
++  transformer: (options: SplitByTransformerOptions) => (data: DataFrame[]) => {
++    if (!Array.isArray(data) || data.length !== 1) {
++      return data;
++    }
++
++    const frame = data[0];
++
++    const matches = fieldMatchers.get(FieldMatcherID.byName).get(options.field);
++    const targetField = frame.fields.find(field => matches(field, frame, data));
++
++    if (!targetField) {
++      return data;
++    }
++
++    // Create dictionary of unique groups to their row indexes
++    const groups: Record<string | number, number[]> = {};
++    for (let i = 0; i < frame.length; i++) {
++      (groups[targetField.values[i]] ??= []).push(i);
++    }
++
++    const remainingFields = without(frame.fields, targetField);
++
++    const processed: DataFrame[] = Object.keys(groups).map(group => ({
++      ...frame,
++      name: group,
++      length: groups[group].length,
++      fields: remainingFields.map(field => ({
++        name: field.name,
++        type: field.type,
++        config: { ...field.config },
++        values: groups[group].map(ix => field.values[ix])
++      }))
++    }));
++
++    return processed;
++  },
++};
+diff --git a/public/app/features/transformers/editors/SplitByTransformerEditor.tsx b/public/app/features/transformers/editors/SplitByTransformerEditor.tsx
+new file mode 100644
+index 00000000000..f1fa63a247a
+--- /dev/null
++++ b/public/app/features/transformers/editors/SplitByTransformerEditor.tsx
+@@ -0,0 +1,110 @@
++import React, { useCallback } from 'react';
++
++import {
++  DataTransformerID,
++  FieldNamePickerConfigSettings,
++  PluginState,
++  StandardEditorsRegistryItem,
++  standardTransformers,
++  TransformerRegistryItem,
++  TransformerUIProps,
++} from '@grafana/data';
++import { t } from '@grafana/i18n';
++import { FieldValidationMessage, InlineField } from '@grafana/ui';
++
++import { SplitByTransformerOptions } from '../../../../../packages/grafana-data/src/transformations/transformers/splitBy';
++import { FieldNamePicker } from '../../../../../packages/grafana-ui/src/components/MatchersUI/FieldNamePicker';
++
++const fieldNamePickerSettings: StandardEditorsRegistryItem<string, FieldNamePickerConfigSettings> = {
++  editor: () => null,
++  settings: { width: 24 },
++  id: '',
++  name: ''
++};
++
++export const SplitByTransformerEditor: React.FC<TransformerUIProps<SplitByTransformerOptions>> = ({
++  input,
++  options,
++  onChange,
++}) => {
++  const onSelectField = useCallback(
++    (value: string | undefined) => {
++      onChange({
++        ...options,
++        field: value ?? '',
++      });
++    },
++    [onChange, options]
++  );
++
++  if (input.length > 1) {
++    return (
++      <FieldValidationMessage>
++        {t('transformers.split-by-transformer-editor.input-length-validation','Split by only works with a single frame.')}
++      </FieldValidationMessage>
++    );
++  }
++
++  return (
++    <InlineField label={t('transformers.split-by-transformer-editor.label-field', 'Field')}>
++        <FieldNamePicker
++        context={{ data: input }}
++        value={options.field}
++        onChange={onSelectField}
++        item={fieldNamePickerSettings}
++        />
++    </InlineField>
++  );
++};
++
++export const getSplitByTransformRegistryItem: () => TransformerRegistryItem<SplitByTransformerOptions> = () => ({
++  id: DataTransformerID.splitBy,
++  editor: SplitByTransformerEditor,
++  transformation: standardTransformers.splitByTransformer,
++  name: standardTransformers.splitByTransformer.name,
++  description: standardTransformers.splitByTransformer.description,
++  state: PluginState.alpha,
++  imageDark: '',
++  imageLight: '',
++  help: `
++### Use cases
++
++This transforms one frame into many frames by grouping rows on each unique value of a given field.
++This is similar to the 'Group by' transform, but instead of calculating aggregates for each group,
++it splits apart the rows into separate frames. This can be useful for labeling or coloring parts of
++a timeseries.
++
++## Example
++
++Input:
++
++| Time | Value | Group  |
++|------|-------|--------|
++| 1    | 10    | Dog    |
++| 2    | 20    | Dog    |
++| 3    | 30    | Cat    |
++| 4    | 40    | Cat    |
++| 5    | 30    | Rabbit |
++
++Output:
++
++Series 1: 'Dog'
++| Time | Value |
++|------|-------|
++| 1    | 10    |
++| 2    | 20    |
++
++Series 2: 'Cat'
++| Time | Value |
++|------|-------|
++| 3    | 30    |
++| 4    | 40    |
++
++Series 3: 'Rabbit'
++| Time | Value |
++|------|-------|
++| 5    | 30    |
++
++There's three unique values for the 'Group' column, so this example data produces three separate frames.
++`,
++});
+diff --git a/public/app/features/transformers/standardTransformers.ts b/public/app/features/transformers/standardTransformers.ts
+index 3fdd629a6e4..f451785f497 100644
+--- a/public/app/features/transformers/standardTransformers.ts
++++ b/public/app/features/transformers/standardTransformers.ts
+@@ -24,6 +24,7 @@ import { getReduceTransformRegistryItem } from './editors/ReduceTransformerEdito
+ import { getRenameByRegexTransformRegistryItem } from './editors/RenameByRegexTransformer';
+ import { getSeriesToRowsTransformerRegistryItem } from './editors/SeriesToRowsTransformerEditor';
+ import { getSortByTransformRegistryItem } from './editors/SortByTransformerEditor';
++import { getSplitByTransformRegistryItem } from './editors/SplitByTransformerEditor';
+ import { getTransposeTransformerRegistryItem } from './editors/TransposeTransformerEditor';
+ import { getExtractFieldsTransformRegistryItem } from './extractFields/ExtractFieldsTransformerEditor';
+ import { getJoinByLabelsTransformRegistryItem } from './joinByLabels/JoinByLabelsTransformerEditor';
+@@ -50,6 +51,7 @@ export const getStandardTransformers = (): TransformerRegistryItem[] => {
+     getLabelsToFieldsTransformerRegistryItem(),
+     getGroupByTransformRegistryItem(),
+     getSortByTransformRegistryItem(),
++    getSplitByTransformRegistryItem(),
+     getMergeTransformerRegistryItem(),
+     getHistogramTransformRegistryItem(),
+     getRowsToFieldsTransformRegistryItem(),

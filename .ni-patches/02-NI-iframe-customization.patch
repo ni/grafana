@@ -1,0 +1,1480 @@
+diff --git a/packages/grafana-data/src/themes/createColors.ts b/packages/grafana-data/src/themes/createColors.ts
+index 09b94fd3b3e..bcc28529191 100644
+--- a/packages/grafana-data/src/themes/createColors.ts
++++ b/packages/grafana-data/src/themes/createColors.ts
+@@ -163,8 +163,8 @@ class DarkColors implements ThemeColorsBase<Partial<ThemeRichColor>> {
+   };
+ 
+   gradients = {
+-    brandHorizontal: 'linear-gradient(270deg, #F55F3E 0%, #FF8833 100%)',
+-    brandVertical: 'linear-gradient(0.01deg, #F55F3E 0.01%, #FF8833 99.99%)',
++    brandHorizontal: 'linear-gradient(270deg, #009B65 0%, #009B65 100%)',
++    brandVertical: 'linear-gradient(0.01deg, #009B65 0.01%, #009B65 99.99%)',
+   };
+ 
+   contrastThreshold = 3;
+@@ -246,8 +246,8 @@ class LightColors implements ThemeColorsBase<Partial<ThemeRichColor>> {
+   };
+ 
+   gradients = {
+-    brandHorizontal: 'linear-gradient(90deg, #FF8833 0%, #F53E4C 100%)',
+-    brandVertical: 'linear-gradient(0.01deg, #F53E4C -31.2%, #FF8833 113.07%)',
++    brandHorizontal: 'linear-gradient(90deg, #009B65 0%, #009B65 100%)',
++    brandVertical: 'linear-gradient(0.01deg, #009B65 -31.2%, #009B65 113.07%)',
+   };
+ 
+   contrastThreshold = 3;
+diff --git a/packages/grafana-ui/src/components/DateTimePickers/TimeRangePicker.tsx b/packages/grafana-ui/src/components/DateTimePickers/TimeRangePicker.tsx
+index b26a6e4c36d..b113fa89cbf 100644
+--- a/packages/grafana-ui/src/components/DateTimePickers/TimeRangePicker.tsx
++++ b/packages/grafana-ui/src/components/DateTimePickers/TimeRangePicker.tsx
+@@ -341,7 +341,7 @@ const getLabelStyles = (theme: GrafanaTheme2) => {
+       columnGap: theme.spacing(0.5),
+     }),
+     utc: css({
+-      color: theme.v1.palette.orange,
++      color: '#009b65',
+       fontSize: theme.typography.size.sm,
+       paddingLeft: '6px',
+       lineHeight: '28px',
+diff --git a/packages/grafana-ui/src/components/EmptyState/EmptyState.tsx b/packages/grafana-ui/src/components/EmptyState/EmptyState.tsx
+index 7e9c73fb0f1..7117f3cca4e 100644
+--- a/packages/grafana-ui/src/components/EmptyState/EmptyState.tsx
++++ b/packages/grafana-ui/src/components/EmptyState/EmptyState.tsx
+@@ -48,7 +48,7 @@ export const EmptyState = ({
+   children,
+   image,
+   message,
+-  hideImage = false,
++  hideImage = true,
+   variant,
+   role,
+ }: React.PropsWithChildren<Props>) => {
+diff --git a/packages/grafana-ui/src/components/Icon/Icon.tsx b/packages/grafana-ui/src/components/Icon/Icon.tsx
+index fa4e1fac6d3..327cb677e43 100644
+--- a/packages/grafana-ui/src/components/Icon/Icon.tsx
++++ b/packages/grafana-ui/src/components/Icon/Icon.tsx
+@@ -32,7 +32,7 @@ const getIconStyles = (theme: GrafanaTheme2) => {
+       verticalAlign: 'middle',
+     }),
+     orange: css({
+-      fill: theme.v1.palette.orange,
++      fill: '#009b65',
+     }),
+     spin: css({
+       [theme.transitions.handleMotion('no-preference', 'reduce')]: {
+diff --git a/packages/grafana-ui/src/themes/GlobalStyles/queryEditor.ts b/packages/grafana-ui/src/themes/GlobalStyles/queryEditor.ts
+index bf3d303ec30..8d64d1351d4 100644
+--- a/packages/grafana-ui/src/themes/GlobalStyles/queryEditor.ts
++++ b/packages/grafana-ui/src/themes/GlobalStyles/queryEditor.ts
+@@ -25,7 +25,7 @@ export function getQueryEditorStyles(theme: GrafanaTheme2) {
+       },
+     },
+     '.query-segment-operator': {
+-      color: `${theme.v1.palette.orange} !important`,
++      color: 'rgb(0, 155, 101) !important', // NI fork: use green color for operator
+     },
+     '.tight-form-func': {
+       background: theme.colors.background.secondary,
+diff --git a/pkg/api/frontendsettings.go b/pkg/api/frontendsettings.go
+index 43efa380f5c..7c136076f4f 100644
+--- a/pkg/api/frontendsettings.go
++++ b/pkg/api/frontendsettings.go
+@@ -136,7 +136,7 @@ func (hs *HTTPServer) getFrontendSettings(c *contextmodel.ReqContext) (*dtos.Fro
+ 		return nil, err
+ 	}
+ 
+-	defaultDS := "-- Grafana --"
++	defaultDS := "-- Example Data --"
+ 	for n, ds := range dataSources {
+ 		if ds.IsDefault {
+ 			defaultDS = n
+diff --git a/pkg/api/index.go b/pkg/api/index.go
+index a928aca581c..3419ab3b171 100644
+--- a/pkg/api/index.go
++++ b/pkg/api/index.go
+@@ -5,6 +5,7 @@ import (
+ 	"crypto/sha256"
+ 	"encoding/hex"
+ 	"fmt"
++	"html/template"
+ 	"net/http"
+ 	"strings"
+ 
+@@ -184,9 +185,9 @@ func (hs *HTTPServer) setIndexViewData(c *contextmodel.ReqContext) (*dtos.IndexV
+ 		NewGrafanaVersionExists:             hs.grafanaUpdateChecker.UpdateAvailable(),
+ 		AppName:                             setting.ApplicationName,
+ 		AppNameBodyClass:                    "app-grafana",
+-		FavIcon:                             "public/img/fav32.png",
+-		AppleTouchIcon:                      "public/img/apple-touch-icon.png",
+-		AppTitle:                            "Grafana",
++		FavIcon:                             template.URL(assets.ContentDeliveryURL + "public/build/img/fav32.png"),            // #nosec G203
++		AppleTouchIcon:                      template.URL(assets.ContentDeliveryURL + "public/build/img/apple-touch-icon.png"), // #nosec G203
++		AppTitle:                            "Dashboards",
+ 		NavTree:                             navTree,
+ 		Nonce:                               c.RequestNonce,
+ 		LoadingLogo:                         "public/img/grafana_icon.svg",
+diff --git a/pkg/services/navtree/navtreeimpl/navtree.go b/pkg/services/navtree/navtreeimpl/navtree.go
+index 31fe4d2982f..d961e115f25 100644
+--- a/pkg/services/navtree/navtreeimpl/navtree.go
++++ b/pkg/services/navtree/navtreeimpl/navtree.go
+@@ -57,6 +57,8 @@ type NavigationAppConfig struct {
+ 	IsNew      bool
+ }
+ 
++const NI_DISABLE = false // NI fork: disable specific navigation items
++
+ func ProvideService(cfg *setting.Cfg, accessControl ac.AccessControl, pluginStore pluginstore.Store, pluginSettings pluginsettings.Service, starService star.Service,
+ 	features featuremgmt.FeatureToggles, dashboardService dashboards.DashboardService, accesscontrolService ac.Service, kvStore kvstore.KVStore, apiKeyService apikey.Service,
+ 	license licensing.Licensing, authnService authn.Service,
+@@ -90,7 +92,7 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
+ 
+ 	treeRoot.AddSection(s.getHomeNode(c, prefs))
+ 
+-	if hasAccess(ac.EvalPermission(dashboards.ActionDashboardsRead)) {
++	if hasAccess(ac.EvalPermission(dashboards.ActionDashboardsRead)) && NI_DISABLE {
+ 		starredItemsLinks, err := s.buildStarredItemsNavLinks(c)
+ 		if err != nil {
+ 			return nil, err
+@@ -137,7 +139,7 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
+ 		})
+ 	}
+ 
+-	if hasAccess(ac.EvalPermission(ac.ActionDatasourcesExplore)) {
++	if hasAccess(ac.EvalPermission(ac.ActionDatasourcesExplore)) && NI_DISABLE {
+ 		treeRoot.AddSection(&navtree.NavLink{
+ 			Text:       "Drilldown",
+ 			Id:         navtree.NavIDDrilldown,
+@@ -148,12 +150,12 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
+ 		})
+ 	}
+ 
+-	if s.cfg.ProfileEnabled && c.IsSignedIn {
++	if s.cfg.ProfileEnabled && c.IsSignedIn && NI_DISABLE {
+ 		treeRoot.AddSection(s.getProfileNode(c))
+ 	}
+ 
+ 	_, uaIsDisabledForOrg := s.cfg.UnifiedAlerting.DisabledOrgs[c.GetOrgID()]
+-	uaVisibleForOrg := s.cfg.UnifiedAlerting.IsEnabled() && !uaIsDisabledForOrg
++	uaVisibleForOrg := s.cfg.UnifiedAlerting.IsEnabled() && !uaIsDisabledForOrg && NI_DISABLE
+ 
+ 	if uaVisibleForOrg {
+ 		if alertingSection := s.buildAlertNavLinks(c); alertingSection != nil {
+@@ -167,7 +169,7 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
+ 
+ 	orgAdminNode, err := s.getAdminNode(c)
+ 
+-	if orgAdminNode != nil && len(orgAdminNode.Children) > 0 {
++	if orgAdminNode != nil && len(orgAdminNode.Children) > 0 && NI_DISABLE {
+ 		treeRoot.AddSection(orgAdminNode)
+ 	} else if err != nil {
+ 		return nil, err
+@@ -190,7 +192,7 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
+ 
+ 	flagDetails, err := openfeature.NewDefaultClient().BooleanValueDetails(ctx, featuremgmt.FlagPinNavItems, true, openfeature.TransactionContext(ctx))
+ 	s.log.Debug("flag evaluation: ", "flagDetails", flagDetails, "err", err)
+-	if flagDetails.Value && c.IsSignedIn {
++	if flagDetails.Value && c.IsSignedIn && NI_DISABLE {
+ 		treeRoot.AddSection(&navtree.NavLink{
+ 			Text:           "Bookmarks",
+ 			Id:             navtree.NavIDBookmarks,
+diff --git a/pkg/tsdb/grafanads/grafana.go b/pkg/tsdb/grafanads/grafana.go
+index 06254b7f0b8..6f40c9dd57c 100644
+--- a/pkg/tsdb/grafanads/grafana.go
++++ b/pkg/tsdb/grafanads/grafana.go
+@@ -23,7 +23,7 @@ import (
+ 
+ // DatasourceName is the string constant used as the datasource name in requests
+ // to identify it as a Grafana DS command.
+-const DatasourceName = "-- Grafana --"
++const DatasourceName = "-- Example Data --"
+ 
+ // DatasourceID is the fake datasource id used in requests to identify it as a
+ // Grafana DS command.
+diff --git a/public/app/AppWrapper.tsx b/public/app/AppWrapper.tsx
+index d7e87d7f5c3..56014d5e012 100644
+--- a/public/app/AppWrapper.tsx
++++ b/public/app/AppWrapper.tsx
+@@ -1,3 +1,5 @@
++import createCache from "@emotion/cache";
++import { CacheProvider as EmotionCacheProvider } from "@emotion/react";
+ import { UNSAFE_PortalProvider } from '@react-aria/overlays';
+ import { Action, KBarProvider } from 'kbar';
+ import { Component, ComponentType, Fragment, ReactNode } from 'react';
+@@ -66,6 +68,9 @@ export class AppWrapper extends Component<AppWrapperProps, AppWrapperState> {
+         window.caches.delete(key);
+       }
+     }
++
++    // NI fork: Tells iframe-host loading indicator when to disappear
++    window.parent.postMessage({ type: 'iframeLoaded' }, window.parent.location.origin);
+   }
+ 
+   renderRoute = (route: RouteDescriptor) => {
+@@ -103,6 +108,13 @@ export class AppWrapper extends Component<AppWrapperProps, AppWrapperState> {
+       providers: enterpriseProviders,
+     };
+ 
++    // NI fork: Disable Emotion's "speedy" stylesheets optimization, due to
++    // incorrect resolution of relative paths in Global styles in iframe in Firefox.
++    const emotionCache = createCache({
++      key: 'ni-emotion-cache-disable-speedy-stylesheets',
++      speedy: false
++    });
++
+     const MaybeTimeRangeProvider = config.featureToggles.timeRangeProvider ? TimeRangeProvider : Fragment;
+ 
+     return (
+@@ -110,29 +122,31 @@ export class AppWrapper extends Component<AppWrapperProps, AppWrapperState> {
+         <ErrorBoundaryAlert boundaryName="app-wrapper" style="page">
+           <GrafanaContext.Provider value={app.context}>
+             <ThemeProvider value={config.theme2}>
+-              <CacheProvider name={this.iconCacheID}>
+-                <KBarProvider
+-                  actions={[]}
+-                  options={{ enableHistory: true, callbacks: { onSelectAction: commandPaletteActionSelected } }}
+-                >
+-                  <MaybeTimeRangeProvider>
+-                    <ScopesContextProvider>
+-                      <ExtensionRegistriesProvider registries={pluginExtensionRegistries}>
+-                        <ExtensionSidebarContextProvider>
+-                          <UNSAFE_PortalProvider getContainer={getPortalContainer}>
+-                            <GlobalStyles />
+-                            <div className="grafana-app">
+-                              <RouterWrapper {...routerWrapperProps} />
+-                              <LiveConnectionWarning />
+-                              <PortalContainer />
+-                            </div>
+-                          </UNSAFE_PortalProvider>
+-                        </ExtensionSidebarContextProvider>
+-                      </ExtensionRegistriesProvider>
+-                    </ScopesContextProvider>
+-                  </MaybeTimeRangeProvider>
+-                </KBarProvider>
+-              </CacheProvider>
++              <EmotionCacheProvider value={emotionCache}>
++                <CacheProvider name={this.iconCacheID}>
++                  <KBarProvider
++                    actions={[]}
++                    options={{ enableHistory: true, callbacks: { onSelectAction: commandPaletteActionSelected } }}
++                  >
++                    <MaybeTimeRangeProvider>
++                      <ScopesContextProvider>
++                        <ExtensionRegistriesProvider registries={pluginExtensionRegistries}>
++                          <ExtensionSidebarContextProvider>
++                            <UNSAFE_PortalProvider getContainer={getPortalContainer}>
++                              <GlobalStyles />
++                              <div className="grafana-app">
++                                <RouterWrapper {...routerWrapperProps} />
++                                <LiveConnectionWarning />
++                                <PortalContainer />
++                              </div>
++                            </UNSAFE_PortalProvider>
++                          </ExtensionSidebarContextProvider>
++                        </ExtensionRegistriesProvider>
++                      </ScopesContextProvider>
++                    </MaybeTimeRangeProvider>
++                  </KBarProvider>
++                </CacheProvider>
++              </EmotionCacheProvider>
+             </ThemeProvider>
+           </GrafanaContext.Provider>
+         </ErrorBoundaryAlert>
+diff --git a/public/app/core/components/AppChrome/AppChrome.tsx b/public/app/core/components/AppChrome/AppChrome.tsx
+index 568fb3fcf3e..c9e5a8b4f9e 100644
+--- a/public/app/core/components/AppChrome/AppChrome.tsx
++++ b/public/app/core/components/AppChrome/AppChrome.tsx
+@@ -45,7 +45,7 @@ export function AppChrome({ children }: Props) {
+   );
+ 
+   const headerLevels = useChromeHeaderLevels();
+-  const headerHeight = headerLevels * getChromeHeaderLevelHeight();
++  const headerHeight = (headerLevels - 1) * getChromeHeaderLevelHeight();
+   const styles = useStyles2(getStyles, headerHeight);
+   const contentSizeStyles = useStyles2(getContentSizeStyles, extensionSidebarWidth);
+   const dragStyles = useStyles2(getDragStyles);
+@@ -232,7 +232,9 @@ const getStyles = (theme: GrafanaTheme2, headerHeight: number) => {
+       zIndex: theme.zIndex.navbarFixed,
+       left: 0,
+       right: 0,
+-      background: theme.colors.background.primary,
++      // NI fork: improve appearance of topNav
++      // boxShadow: true ? undefined : shadow,
++      // background: theme.colors.background.primary,
+       flexDirection: 'column',
+     }),
+     topNavMenuDocked: css({
+diff --git a/public/app/core/components/AppChrome/AppChromeService.tsx b/public/app/core/components/AppChrome/AppChromeService.tsx
+index cead7f68090..903b87ddade 100644
+--- a/public/app/core/components/AppChrome/AppChromeService.tsx
++++ b/public/app/core/components/AppChrome/AppChromeService.tsx
+@@ -41,10 +41,11 @@ export class AppChromeService {
+   private currentRoute?: RouteDescriptor;
+   private routeChangeHandled = true;
+ 
+-  private megaMenuDocked = Boolean(
++  // NI fork: we never want the mega menu to be docked
++  private megaMenuDocked = false; /* Boolean(
+     window.innerWidth >= config.theme2.breakpoints.values.xl &&
+-      store.getBool(DOCKED_LOCAL_STORAGE_KEY, Boolean(window.innerWidth >= config.theme2.breakpoints.values.xl))
+-  );
++      store.getBool(DOCKED_LOCAL_STORAGE_KEY, Boolean(window.innerWidth >= config.theme2.breakpoints.values.xxl))
++  );*/
+ 
+   private sessionStorageData = window.sessionStorage.getItem('returnToPrevious');
+   private returnToPreviousData = this.sessionStorageData ? JSON.parse(this.sessionStorageData) : undefined;
+@@ -190,13 +191,14 @@ export class AppChromeService {
+     });
+   };
+ 
+-  public setMegaMenuDocked = (newDockedState: boolean, updatePersistedState = true) => {
++  // NI fork: disable docked menu
++  public setMegaMenuDocked = (_newDockedState: boolean, updatePersistedState = true) => {
+     if (updatePersistedState) {
+-      store.set(DOCKED_LOCAL_STORAGE_KEY, newDockedState);
++      store.set(DOCKED_LOCAL_STORAGE_KEY, false);
+     }
+-    reportInteraction('grafana_mega_menu_docked', { state: newDockedState });
++    reportInteraction('grafana_mega_menu_docked', { state: false });
+     this.update({
+-      megaMenuDocked: newDockedState,
++      megaMenuDocked: false,
+     });
+   };
+ 
+diff --git a/public/app/core/components/AppChrome/MegaMenu/MegaMenu.tsx b/public/app/core/components/AppChrome/MegaMenu/MegaMenu.tsx
+index c2be1a66141..4c0d6b2353a 100644
+--- a/public/app/core/components/AppChrome/MegaMenu/MegaMenu.tsx
++++ b/public/app/core/components/AppChrome/MegaMenu/MegaMenu.tsx
+@@ -35,9 +35,9 @@ export const MegaMenu = memo(
+     const [patchPreferences] = usePatchUserPreferencesMutation();
+     const pinnedItems = usePinnedItems();
+ 
+-    // Remove profile + help from tree
++    // Remove profile + help from tree (NI fork: additionally remove Home, Explore and Connections)
+     const navItems = navTree
+-      .filter((item) => item.id !== 'profile' && item.id !== 'help')
++      .filter((item) => item.id !== 'profile' && item.id !== 'help' && item.id !== 'home' && item.id !== 'explore' && item.id !== 'connections')
+       .map((item) => enrichWithInteractionTracking(item, state.megaMenuDocked));
+ 
+     if (config.featureToggles.pinNavItems) {
+diff --git a/public/app/core/components/AppChrome/MegaMenu/MegaMenuHeader.tsx b/public/app/core/components/AppChrome/MegaMenu/MegaMenuHeader.tsx
+index 7a5dc8d8d4f..67da56b8ffe 100644
+--- a/public/app/core/components/AppChrome/MegaMenu/MegaMenuHeader.tsx
++++ b/public/app/core/components/AppChrome/MegaMenu/MegaMenuHeader.tsx
+@@ -2,11 +2,9 @@ import { css } from '@emotion/css';
+ 
+ import { GrafanaTheme2 } from '@grafana/data';
+ import { t } from '@grafana/i18n';
+-import { IconButton, Stack, ToolbarButton, useTheme2 } from '@grafana/ui';
++import { IconButton, Stack, useTheme2 } from '@grafana/ui';
+ import { useGrafana } from 'app/core/context/GrafanaContext';
+ 
+-import { Branding } from '../../Branding/Branding';
+-import { OrganizationSwitcher } from '../OrganizationSwitcher/OrganizationSwitcher';
+ import { getChromeHeaderLevelHeight } from '../TopBar/useChromeHeaderHeight';
+ 
+ export interface Props {
+@@ -20,25 +18,34 @@ export const MEGA_MENU_HEADER_TOGGLE_ID = 'mega-menu-header-toggle';
+ 
+ export function MegaMenuHeader({ handleMegaMenu, handleDockedMenu, onClose }: Props) {
+   const theme = useTheme2();
++  const styles = getStyles(theme);
+   const { chrome } = useGrafana();
+   const state = chrome.useState();
+ 
+-  const styles = getStyles(theme);
+-
+   return (
+     <div className={styles.header}>
+       <Stack alignItems="center" minWidth={0} gap={0.25}>
+-        <ToolbarButton
+-          narrow
+-          id={MEGA_MENU_HEADER_TOGGLE_ID}
+-          onClick={handleMegaMenu}
+-          tooltip={t('navigation.megamenu.close', 'Close menu')}
+-        >
+-          <Branding.MenuLogo className={styles.img} />
+-        </ToolbarButton>
+-        <OrganizationSwitcher />
++        { // NI fork: Simple icon button is preferred over ToolbarButton, and removes bran
++          <IconButton
++            onClick={state.megaMenuDocked ? undefined : onClose}
++            tooltip={t('navigation.megamenu.close', 'Close menu')}
++            name='arrow-from-right'
++            style={{ transform: 'rotate(180deg)' }}
++          >
++          </IconButton>
++          /* <ToolbarButton
++            narrow
++            id={MEGA_MENU_HEADER_TOGGLE_ID}
++            onClick={handleMegaMenu}
++            tooltip={t('navigation.megamenu.close', 'Close menu')}
++          >
++            <Branding.MenuLogo className={styles.img} />
++          </ToolbarButton>
++          <OrganizationSwitcher /> */
++        }
+       </Stack>
+-      <IconButton
++      <div className={styles.flexGrow} />
++      {/* <IconButton
+         id={DOCK_MENU_BUTTON_ID}
+         className={styles.dockMenuButton}
+         tooltip={
+@@ -57,7 +64,9 @@ export function MegaMenuHeader({ handleMegaMenu, handleDockedMenu, onClose }: Pr
+         onClick={onClose}
+         size="xl"
+         variant="secondary"
+-      />
++      /> */
++        // end NI fork changes
++      }
+     </div>
+   );
+ }
+@@ -92,4 +101,5 @@ const getStyles = (theme: GrafanaTheme2) => ({
+       display: 'none',
+     },
+   }),
++  flexGrow: css({ flexGrow: 1 }),
+ });
+diff --git a/public/app/core/components/AppChrome/TopBar/SingleTopBar.tsx b/public/app/core/components/AppChrome/TopBar/SingleTopBar.tsx
+index f04222533f9..6e18055deaf 100644
+--- a/public/app/core/components/AppChrome/TopBar/SingleTopBar.tsx
++++ b/public/app/core/components/AppChrome/TopBar/SingleTopBar.tsx
+@@ -5,16 +5,16 @@ import { GrafanaTheme2, NavModelItem } from '@grafana/data';
+ import { Components } from '@grafana/e2e-selectors';
+ import { t } from '@grafana/i18n';
+ import { ScopesContextValue } from '@grafana/runtime';
+-import { Icon, Stack, ToolbarButton, useStyles2 } from '@grafana/ui';
++import { IconButton, Stack, useStyles2 } from '@grafana/ui';
+ import { config } from 'app/core/config';
+ import { MEGA_MENU_TOGGLE_ID } from 'app/core/constants';
+ import { useGrafana } from 'app/core/context/GrafanaContext';
+ import { contextSrv } from 'app/core/core';
+ import { useMediaQueryMinWidth } from 'app/core/hooks/useMediaQueryMinWidth';
+ import { HOME_NAV_ID } from 'app/core/reducers/navModel';
++// import { ScopesSelector } from 'app/features/scopes/selector/ScopesSelector';
+ import { useSelector } from 'app/types/store';
+ 
+-import { Branding } from '../../Branding/Branding';
+ import { Breadcrumbs } from '../../Breadcrumbs/Breadcrumbs';
+ import { buildBreadcrumbs } from '../../Breadcrumbs/utils';
+ import { ExtensionToolbarItem } from '../ExtensionSidebar/ExtensionToolbarItem';
+@@ -60,29 +60,42 @@ export const SingleTopBar = memo(function SingleTopBar({
+   const breadcrumbs = buildBreadcrumbs(sectionNav, pageNav, homeNav);
+   const unifiedHistoryEnabled = config.featureToggles.unifiedHistory;
+   const isSmallScreen = !useMediaQueryMinWidth('sm');
++  // const isLargeScreen = useMediaQueryMinWidth('lg');
++  // const topLevelScopes = !showToolbarLevel && isLargeScreen && scopes?.state.enabled;
++  // NI fork: hide the top bar when not in root view
++  const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1].href;
++  const niHideBarStyle: React.CSSProperties = lastBreadcrumb.split('/dashboards')[1] !== '' ? { display: 'none' } : {};
+ 
+   return (
+     <>
+-      <div className={styles.layout}>
++      <div className={styles.layout} style={niHideBarStyle}>
+         <Stack minWidth={0} gap={0.5} alignItems="center" flex={{ xs: 2, lg: 1 }}>
+           {!menuDockedAndOpen && (
+-            <ToolbarButton
+-              narrow
++            // NI fork: Simple icon button is preferred over ToolbarButton, and removes branding logo
++            <IconButton
+               id={MEGA_MENU_TOGGLE_ID}
+               onClick={onToggleMegaMenu}
+               tooltip={t('navigation.megamenu.open', 'Open menu')}
++              name='arrow-from-right'
+             >
+-              <Stack gap={0} alignItems="center">
+-                <Branding.MenuLogo className={styles.img} />
+-                <Icon size="sm" name="angle-down" />
+-              </Stack>
+-            </ToolbarButton>
++            </IconButton>
++            // <ToolbarButton
++            //     narrow
++            //     id={MEGA_MENU_TOGGLE_ID}
++            //     onClick={onToggleMegaMenu}
++            //     tooltip={t('navigation.megamenu.open', 'Open menu')}
++            //   >
++            //     <Stack gap={0} alignItems="center">
++            //       <Branding.MenuLogo className={styles.img} />
++            //       <Icon size="sm" name="angle-down" />
++            //     </Stack>
++            //   </ToolbarButton>
++            // end NI fork changes
+           )}
+           <Breadcrumbs breadcrumbs={breadcrumbs} className={styles.breadcrumbsWrapper} />
+-          {!showToolbarLevel && breadcrumbActions}
+         </Stack>
+ 
+-        <Stack
++        {false && <Stack
+           gap={0.5}
+           alignItems="center"
+           justifyContent={'flex-end'}
+@@ -100,7 +113,7 @@ export const SingleTopBar = memo(function SingleTopBar({
+           {!contextSrv.user.isSignedIn && <SignInLink />}
+           <InviteUserButton />
+           {profileNode && <ProfileButton profileNode={profileNode} onToggleKioskMode={onToggleKioskMode} />}
+-        </Stack>
++        </Stack>}
+       </div>
+       {showToolbarLevel && (
+         <SingleTopBarActions scopes={scopes} actions={actions} breadcrumbActions={breadcrumbActions} />
+diff --git a/public/app/core/components/Branding/Branding.tsx b/public/app/core/components/Branding/Branding.tsx
+index b32199ed4c7..3ce01ef2813 100644
+--- a/public/app/core/components/Branding/Branding.tsx
++++ b/public/app/core/components/Branding/Branding.tsx
+@@ -13,7 +13,7 @@ export interface BrandComponentProps {
+ }
+ 
+ export const LoginLogo: FC<BrandComponentProps & { logo?: string }> = ({ className, logo }) => {
+-  return <img className={className} src={`${logo ? logo : grafanaIconSvg}`} alt="Grafana" />;
++  return <img className={className} src={`${logo ? logo : grafanaIconSvg}`} alt="Dashboards" />;
+ };
+ 
+ const LoginBackground: FC<BrandComponentProps> = ({ className, children }) => {
+@@ -49,7 +49,7 @@ const LoginBackground: FC<BrandComponentProps> = ({ className, children }) => {
+ };
+ 
+ const MenuLogo: FC<BrandComponentProps> = ({ className }) => {
+-  return <img className={className} src={grafanaIconSvg} alt="Grafana" />;
++  return <img className={className} src="public/img/grafana_icon.svg" alt="Dashboards" />;
+ };
+ 
+ const LoginBoxBackground = () => {
+@@ -65,7 +65,7 @@ export class Branding {
+   static LoginBackground = LoginBackground;
+   static MenuLogo = MenuLogo;
+   static LoginBoxBackground = LoginBoxBackground;
+-  static AppTitle = 'Grafana';
++  static AppTitle = 'Dashboards';
+   static LoginTitle = 'Welcome to Grafana';
+   static HideEdition = false;
+   static GetLoginSubTitle = (): null | string => {
+diff --git a/public/app/core/components/Breadcrumbs/Breadcrumbs.tsx b/public/app/core/components/Breadcrumbs/Breadcrumbs.tsx
+index 4a11f0d99ab..8e9f4893c1c 100644
+--- a/public/app/core/components/Breadcrumbs/Breadcrumbs.tsx
++++ b/public/app/core/components/Breadcrumbs/Breadcrumbs.tsx
+@@ -15,8 +15,13 @@ export interface Props {
+ export function Breadcrumbs({ breadcrumbs, className }: Props) {
+   const styles = useStyles2(getStyles);
+ 
++  window.parent.postMessage(
++    { type: 'breadcrumb', breadcrumbs: breadcrumbs.map(b => ({ label: b.text, url: b.href})) },
++    window.parent.location.origin
++  );
++
+   return (
+-    <nav aria-label={t('navigation.breadcrumbs.aria-label', 'Breadcrumbs')} className={className}>
++    <nav aria-label={t('navigation.breadcrumbs.aria-label', 'Breadcrumbs')} className={className} style={{ display: 'none' }}>
+       <ol className={styles.breadcrumbs}>
+         {breadcrumbs.map((breadcrumb, index) => (
+           <BreadcrumbItem
+diff --git a/public/app/core/components/Footer/Footer.tsx b/public/app/core/components/Footer/Footer.tsx
+index d64cdfc006e..c3edeaf8002 100644
+--- a/public/app/core/components/Footer/Footer.tsx
++++ b/public/app/core/components/Footer/Footer.tsx
+@@ -2,7 +2,6 @@ import { css } from '@emotion/css';
+ import { memo } from 'react';
+ 
+ import { GrafanaTheme2, LinkTarget } from '@grafana/data';
+-import { t } from '@grafana/i18n';
+ import { config } from '@grafana/runtime';
+ import { Icon, IconName, useStyles2 } from '@grafana/ui';
+ 
+@@ -18,24 +17,10 @@ export let getFooterLinks = (): FooterLink[] => {
+   return [
+     {
+       target: '_blank',
+-      id: 'documentation',
+-      text: t('nav.help/documentation', 'Documentation'),
++      id: 'source',
++      text: 'Source Code',
+       icon: 'document-info',
+-      url: 'https://grafana.com/docs/grafana/latest/?utm_source=grafana_footer',
+-    },
+-    {
+-      target: '_blank',
+-      id: 'support',
+-      text: t('nav.help/support', 'Support'),
+-      icon: 'question-circle',
+-      url: 'https://grafana.com/products/enterprise/?utm_source=grafana_footer',
+-    },
+-    {
+-      target: '_blank',
+-      id: 'community',
+-      text: t('nav.help/community', 'Community'),
+-      icon: 'comments-alt',
+-      url: 'https://community.grafana.com/?utm_source=grafana_footer',
++      url: 'https://github.com/ni/grafana',
+     },
+   ];
+ };
+@@ -100,7 +85,7 @@ export interface Props {
+ }
+ 
+ export const Footer = memo(({ customLinks, hideEdition }: Props) => {
+-  const links = (customLinks || getFooterLinks()).concat(getVersionLinks(hideEdition));
++  const links = (customLinks || getFooterLinks());
+   const styles = useStyles2(getStyles);
+ 
+   return (
+diff --git a/public/app/core/components/Page/Page.tsx b/public/app/core/components/Page/Page.tsx
+index cd29bbfb556..949d8861c84 100644
+--- a/public/app/core/components/Page/Page.tsx
++++ b/public/app/core/components/Page/Page.tsx
+@@ -110,6 +110,7 @@ const getStyles = (theme: GrafanaTheme2) => {
+     pageInner: css({
+       label: 'page-inner',
+       padding: theme.spacing(2),
++      paddingTop: theme.spacing.x8, // NI fork: provides more space for the header
+       borderBottom: 'none',
+       background: theme.colors.background.primary,
+       display: 'flex',
+@@ -119,6 +120,7 @@ const getStyles = (theme: GrafanaTheme2) => {
+ 
+       [theme.breakpoints.up('md')]: {
+         padding: theme.spacing(4),
++        paddingTop: theme.spacing.x8, // NI fork: provides more space for the header
+       },
+     }),
+     canvasContent: css({
+diff --git a/public/app/core/components/PageNotFound/EntityNotFound.tsx b/public/app/core/components/PageNotFound/EntityNotFound.tsx
+index 3c65dbf5885..5c9f0135a31 100644
+--- a/public/app/core/components/PageNotFound/EntityNotFound.tsx
++++ b/public/app/core/components/PageNotFound/EntityNotFound.tsx
+@@ -21,10 +21,10 @@ export function EntityNotFound({ entity = 'Page' }: Props) {
+       <EmptyState message={`${entity} not found`} variant="not-found">
+         <Trans i18nKey="entity-not-found.description">
+           We&apos;re looking but can&apos;t seem to find this {{ lowerCaseEntity }}. Try returning{' '}
+-          <TextLink href="/">home</TextLink> or seeking help on the{' '}
++          <TextLink href="/">home</TextLink>{/* or seeking help on the{' '}
+           <TextLink href="https://community.grafana.com" external>
+             community site.
+-          </TextLink>
++          </TextLink>*/}
+         </Trans>
+       </EmptyState>
+     </div>
+diff --git a/public/app/core/navigation/GrafanaRoute.tsx b/public/app/core/navigation/GrafanaRoute.tsx
+index e17a3bf6a4a..c5aa4415b8f 100644
+--- a/public/app/core/navigation/GrafanaRoute.tsx
++++ b/public/app/core/navigation/GrafanaRoute.tsx
+@@ -27,6 +27,8 @@ export function GrafanaRoute(props: Props) {
+     updateBodyClassNames(props.route);
+     cleanupDOM();
+     navigationLogger('GrafanaRoute', false, 'Mounted', props.route);
++    // NI fork: iframe route synchronization
++    window.parent.postMessage({ type: 'iframeNavigate' }, window.parent.location.origin);
+ 
+     return () => {
+       navigationLogger('GrafanaRoute', false, 'Unmounted', props.route);
+@@ -40,6 +42,8 @@ export function GrafanaRoute(props: Props) {
+     cleanupDOM();
+     reportPageview();
+     navigationLogger('GrafanaRoute', false, 'Updated', props);
++    // NI fork: iframe route synchronization
++    window.parent.postMessage({ type: 'iframeNavigate' }, window.parent.location.origin);
+   });
+ 
+   navigationLogger('GrafanaRoute', false, 'Rendered', props.route);
+diff --git a/public/app/core/utils/explore.ts b/public/app/core/utils/explore.ts
+index f2d7fcedfc1..89d0de016d5 100644
+--- a/public/app/core/utils/explore.ts
++++ b/public/app/core/utils/explore.ts
+@@ -12,7 +12,7 @@ import {
+   DefaultTimeZone,
+   getNextRefId,
+   IntervalValues,
+-  locationUtil,
++  // locationUtil,
+   LogsDedupStrategy,
+   LogsSortOrder,
+   rangeUtil,
+@@ -99,7 +99,10 @@ export async function getExploreUrl(args: GetExploreUrlArguments): Promise<strin
+       datasource: dsRef?.uid,
+     },
+   });
+-  return locationUtil.assureBaseUrl(urlUtil.renderUrl('/explore', { panes: exploreState, schemaVersion: 1 }));
++  // NI fork: The below commented out line works correctly with the dashboardScene feature turned on,
++  // but not with it off, so we use the one below it instead.
++  // return locationUtil.assureBaseUrl(urlUtil.renderUrl('/explore', { panes: exploreState, schemaVersion: 1 }));
++  return urlUtil.renderUrl('/explore', { panes: exploreState, schemaVersion: 1 });
+ }
+ 
+ export function requestIdGenerator(exploreId: string) {
+diff --git a/public/app/features/browse-dashboards/BrowseDashboardsPage.tsx b/public/app/features/browse-dashboards/BrowseDashboardsPage.tsx
+index bc9572efdbd..8505b50b7a5 100644
+--- a/public/app/features/browse-dashboards/BrowseDashboardsPage.tsx
++++ b/public/app/features/browse-dashboards/BrowseDashboardsPage.tsx
+@@ -99,8 +99,8 @@ const BrowseDashboardsPage = memo(({ queryParams }: { queryParams: Record<string
+     canDeleteFolders,
+     canDeleteDashboards,
+     canEditDashboards,
+-    canCreateDashboards,
+-    canCreateFolders,
++    // canCreateDashboards,
++    // canCreateFolders,
+   } = getFolderPermissions(folder);
+   const hasAdminRights = contextSrv.hasRole('Admin') || contextSrv.isGrafanaAdmin;
+   const isProvisionedFolder = folder?.managedBy === ManagerKind.Repo;
+@@ -163,15 +163,13 @@ const BrowseDashboardsPage = memo(({ queryParams }: { queryParams: Record<string
+             </LinkButton>
+           )}
+           {folderDTO && <FolderActionsButton folder={folderDTO} repoType={repoType} isReadOnlyRepo={isReadOnlyRepo} />}
+-          {(canCreateDashboards || canCreateFolders) && (
+-            <CreateNewButton
+-              parentFolder={folderDTO}
+-              canCreateDashboard={canCreateDashboards}
+-              canCreateFolder={canCreateFolders}
+-              repoType={repoType}
+-              isReadOnlyRepo={isReadOnlyRepo}
+-            />
+-          )}
++          <CreateNewButton
++            parentFolder={folderDTO}
++            canCreateDashboard={true}
++            canCreateFolder={folder === rootFolderDTO}
++            repoType={repoType}
++            isReadOnlyRepo={isReadOnlyRepo}
++          />
+         </>
+       }
+     >
+diff --git a/public/app/features/browse-dashboards/components/CreateNewButton.tsx b/public/app/features/browse-dashboards/components/CreateNewButton.tsx
+index c71b67a911f..2bbe2855dd0 100644
+--- a/public/app/features/browse-dashboards/components/CreateNewButton.tsx
++++ b/public/app/features/browse-dashboards/components/CreateNewButton.tsx
+@@ -85,7 +85,9 @@ export default function CreateNewButton({
+           url={buildUrl('/dashboard/new', parentFolder?.uid)}
+         />
+       )}
+-      {canCreateFolder && <MenuItem onClick={() => setShowNewFolderDrawer(true)} label={getNewFolderPhrase()} />}
++      {/* NI fork: Folders are directly mapped from the workspaces, and thus can not be created in the UI. 
++        {canCreateFolder && <MenuItem onClick={() => setShowNewFolderDrawer(true)} label={getNewFolderPhrase()} />} 
++      */}
+       {canCreateDashboard && !isProvisionedInstance && parentFolder?.managedBy !== ManagerKind.Repo && (
+         <MenuItem
+           label={getImportPhrase()}
+diff --git a/public/app/features/dashboard-scene/edit-pane/DashboardEditPaneSplitter.tsx b/public/app/features/dashboard-scene/edit-pane/DashboardEditPaneSplitter.tsx
+index 9ede14fe11d..e37c543699e 100644
+--- a/public/app/features/dashboard-scene/edit-pane/DashboardEditPaneSplitter.tsx
++++ b/public/app/features/dashboard-scene/edit-pane/DashboardEditPaneSplitter.tsx
+@@ -191,7 +191,7 @@ function getStyles(theme: GrafanaTheme2, headerHeight: number) {
+         position: 'sticky',
+         zIndex: theme.zIndex.activePanel,
+         background: theme.colors.background.canvas,
+-        top: headerHeight,
++        top: 0,
+       },
+     }),
+   };
+diff --git a/public/app/features/dashboard/components/AnnotationSettings/AnnotationSettingsList.tsx b/public/app/features/dashboard/components/AnnotationSettings/AnnotationSettingsList.tsx
+index d2e4d682ee6..126cc8e06d1 100644
+--- a/public/app/features/dashboard/components/AnnotationSettings/AnnotationSettingsList.tsx
++++ b/public/app/features/dashboard/components/AnnotationSettings/AnnotationSettingsList.tsx
+@@ -153,8 +153,8 @@ export const AnnotationSettingsList = ({ dashboard, onNew, onEdit }: Props) => {
+               <p>
+                 Annotations provide a way to integrate event data into your graphs. They are visualized as vertical
+                 lines and icons on all graph panels. When you hover over an annotation icon you can get event text &amp;
+-                tags for the event. You can add annotation events directly from grafana by holding CTRL or CMD + click
+-                on graph (or drag region). These will be stored in Grafana&apos;s annotation database.
++                tags for the event. You can add annotation events by holding CTRL or CMD + click
++                on graph (or drag region).
+               </p>
+             </Trans>
+             <Trans i18nKey="annotations.empty-state.info-box-content-2">
+diff --git a/public/app/features/dashboard/components/ShareModal/ShareLink.tsx b/public/app/features/dashboard/components/ShareModal/ShareLink.tsx
+index 6c578299f66..d090e9f4e2f 100644
+--- a/public/app/features/dashboard/components/ShareModal/ShareLink.tsx
++++ b/public/app/features/dashboard/components/ShareModal/ShareLink.tsx
+@@ -116,7 +116,7 @@ export class ShareLink extends PureComponent<Props, State> {
+             />
+           </Field>
+           <ThemePicker selectedTheme={selectedTheme} onChange={this.onThemeChange} />
+-          <Field label={shortenURLTranslation}>
++          <Field label={shortenURLTranslation} style={{ display: 'none' }}>
+             <Switch id="share-shorten-url" value={useShortUrl} onChange={this.onUrlShorten} />
+           </Field>
+ 
+@@ -156,7 +156,7 @@ export class ShareLink extends PureComponent<Props, State> {
+           </>
+         )}
+ 
+-        {panel && !config.rendererAvailable && (
++        {false && panel && !config.rendererAvailable && (
+           <Alert
+             severity="info"
+             title={t('share-modal.link.render-alert', 'Image renderer plugin not installed')}
+diff --git a/public/app/features/dashboard/components/ShareModal/ThemePicker.tsx b/public/app/features/dashboard/components/ShareModal/ThemePicker.tsx
+index 44506a5257d..938300632a3 100644
+--- a/public/app/features/dashboard/components/ShareModal/ThemePicker.tsx
++++ b/public/app/features/dashboard/components/ShareModal/ThemePicker.tsx
+@@ -25,7 +25,7 @@ export const ThemePicker = ({ selectedTheme = 'current', onChange, description }
+   ];
+ 
+   return (
+-    <Field label={t('share-modal.theme-picker.field-name', `Theme`)} description={description}>
++    <Field label={t('share-modal.theme-picker.field-name', `Theme`)} style={{ display: 'none' }}>
+       <RadioButtonGroup options={themeOptions} value={selectedTheme} onChange={onChange} />
+     </Field>
+   );
+diff --git a/public/app/features/dashboard/components/ShareModal/utils.ts b/public/app/features/dashboard/components/ShareModal/utils.ts
+index e60deafe3a5..053442d4bcf 100644
+--- a/public/app/features/dashboard/components/ShareModal/utils.ts
++++ b/public/app/features/dashboard/components/ShareModal/utils.ts
+@@ -62,7 +62,8 @@ export function buildParams({
+ }
+ 
+ export function buildBaseUrl() {
+-  let baseUrl = window.location.href;
++  // NI fork: Use iframe parent location for sharing base URL
++  let baseUrl = window.parent.location.href;
+   const queryStart = baseUrl.indexOf('?');
+ 
+   if (queryStart !== -1) {
+diff --git a/public/app/features/dashboard/containers/DashboardPageProxy.test.tsx b/public/app/features/dashboard/containers/DashboardPageProxy.test.tsx
+index e26b1099d2d..2fc7b2e32ec 100644
+--- a/public/app/features/dashboard/containers/DashboardPageProxy.test.tsx
++++ b/public/app/features/dashboard/containers/DashboardPageProxy.test.tsx
+@@ -5,6 +5,7 @@ import { render } from 'test/test-utils';
+ 
+ import { selectors } from '@grafana/e2e-selectors';
+ import { config, locationService } from '@grafana/runtime';
++import { appEvents } from 'app/core/app_events';
+ import {
+   HOME_DASHBOARD_CACHE_KEY,
+   getDashboardScenePageStateManager,
+@@ -14,11 +15,20 @@ import {
+   setupLoadDashboardRuntimeErrorMock,
+ } from 'app/features/dashboard-scene/utils/test-utils';
+ import { DashboardDTO, DashboardRoutes } from 'app/types/dashboard';
++import { NIRefreshDashboardEvent } from 'app/types/events';
+ 
+ import { DashboardLoaderSrv, setDashboardLoaderSrv } from '../services/DashboardLoaderSrv';
+ 
+ import DashboardPageProxy, { DashboardPageProxyProps } from './DashboardPageProxy';
+ 
++const mockRefreshTimeModel = jest.fn();
++
++jest.mock('../services/TimeSrv', () => ({
++  getTimeSrv: jest.fn(() => ({
++    refreshTimeModel: mockRefreshTimeModel,
++  })),
++}));
++
+ const dashMock: DashboardDTO = {
+   dashboard: {
+     id: 1,
+@@ -283,4 +293,111 @@ describe('DashboardPageProxy', () => {
+       expect(await screen.findByTestId('dashboard-page-error')).toHaveTextContent('Runtime error');
+     });
+   });
++
++  describe('NIRefreshDashboardEvent', () => {
++    beforeEach(() => {
++      mockRefreshTimeModel.mockClear();
++      getDashboardScenePageStateManager().setDashboardCache('test-uid', dashMock);
++    });
++
++    describe('when dashboard scenes is disabled', () => {
++      beforeEach(() => {
++        config.featureToggles.dashboardSceneForViewers = false;
++      });
++
++      it('should refresh the dashboard when NIRefreshDashboardEvent is emitted', async () => {
++        act(() => {
++          setup({
++            route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
++            uid: 'test-uid',
++          });
++        });
++
++        await waitFor(() => {
++          expect(screen.queryByTestId('dashboard-scene-page')).not.toBeInTheDocument();
++        });
++
++        act(() => {
++          appEvents.publish(new NIRefreshDashboardEvent());
++        });
++
++        await waitFor(() => {
++          expect(mockRefreshTimeModel).toHaveBeenCalledTimes(1);
++        });
++      });
++
++      it('should refresh the dashboard multiple times when event is emitted multiple times', async () => {
++        act(() => {
++          setup({
++            route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
++            uid: 'test-uid',
++          });
++        });
++
++        await waitFor(() => {
++          expect(screen.queryByTestId('dashboard-scene-page')).not.toBeInTheDocument();
++        });
++
++        act(() => {
++          appEvents.publish(new NIRefreshDashboardEvent());
++          appEvents.publish(new NIRefreshDashboardEvent());
++          appEvents.publish(new NIRefreshDashboardEvent());
++        });
++
++        await waitFor(() => {
++          expect(mockRefreshTimeModel).toHaveBeenCalledTimes(3);
++        });
++      });
++    });
++
++    describe('when dashboard scenes is enabled', () => {
++      beforeEach(() => {
++        config.featureToggles.dashboardSceneForViewers = true;
++      });
++
++      it('should refresh dashboard when NIRefreshDashboardEvent is emitted', async () => {
++        act(() => {
++          setup({
++            route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
++            uid: 'test-uid',
++          });
++        });
++
++        await waitFor(() => {
++          expect(screen.queryByTestId('dashboard-scene-page')).toBeInTheDocument();
++        });
++
++        act(() => {
++          appEvents.publish(new NIRefreshDashboardEvent());
++        });
++
++        await waitFor(() => {
++          expect(mockRefreshTimeModel).toHaveBeenCalledTimes(1);
++        });
++      });
++
++      it('should refresh the dashboard multiple times when event is emitted multiple times', async () => {
++        act(() => {
++          setup({
++            route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
++            uid: 'test-uid',
++          });
++        });
++
++        await waitFor(() => {
++          expect(screen.queryByTestId('dashboard-scene-page')).toBeInTheDocument();
++        });
++
++        act(() => {
++          appEvents.publish(new NIRefreshDashboardEvent());
++          appEvents.publish(new NIRefreshDashboardEvent());
++          appEvents.publish(new NIRefreshDashboardEvent());
++        });
++
++        await waitFor(() => {
++          expect(mockRefreshTimeModel).toHaveBeenCalledTimes(3);
++        });
++      });
++    });
++  });
+ });
+diff --git a/public/app/features/dashboard/containers/DashboardPageProxy.tsx b/public/app/features/dashboard/containers/DashboardPageProxy.tsx
+index 5409ff7177b..3e095fbee95 100644
+--- a/public/app/features/dashboard/containers/DashboardPageProxy.tsx
++++ b/public/app/features/dashboard/containers/DashboardPageProxy.tsx
+@@ -1,14 +1,17 @@
++import { useEffect } from 'react';
+ import { useLocation, useParams } from 'react-router-dom-v5-compat';
+ import { useAsync } from 'react-use';
+ 
+ import { config } from '@grafana/runtime';
++import { appEvents } from 'app/core/app_events';
+ import { GrafanaRouteComponentProps } from 'app/core/navigation/types';
++import { getTimeSrv } from 'app/features/dashboard/services/TimeSrv';
+ import DashboardScenePage from 'app/features/dashboard-scene/pages/DashboardScenePage';
+ import { getDashboardScenePageStateManager } from 'app/features/dashboard-scene/pages/DashboardScenePageStateManager';
+ import { DashboardRoutes } from 'app/types/dashboard';
++import { NIRefreshDashboardEvent } from 'app/types/events';
+ 
+ import { isDashboardV2Resource } from '../api/utils';
+-
+ import DashboardPage, { DashboardPageParams } from './DashboardPage';
+ import { DashboardPageError } from './DashboardPageError';
+ import { DashboardPageRouteParams, DashboardPageRouteSearchParams } from './types';
+@@ -27,6 +30,17 @@ function DashboardPageProxy(props: DashboardPageProxyProps) {
+   const location = useLocation();
+   const stateManager = getDashboardScenePageStateManager();
+ 
++  // Subscribe to NIRefreshDashboardEvent regardless of which dashboard implementation is used
++  useEffect(() => {
++    const subscription = appEvents.subscribe(NIRefreshDashboardEvent, () => {
++      getTimeSrv().refreshTimeModel();
++    });
++
++    return () => {
++      subscription.unsubscribe();
++    };
++  }, []);
++
+   if (forceScenes || (config.featureToggles.dashboardScene && !forceOld)) {
+     return <DashboardScenePage {...props} />;
+   }
+diff --git a/public/app/features/dashboard/state/DashboardModel.ts b/public/app/features/dashboard/state/DashboardModel.ts
+index f4b912c6358..e21ebb90f33 100644
+--- a/public/app/features/dashboard/state/DashboardModel.ts
++++ b/public/app/features/dashboard/state/DashboardModel.ts
+@@ -204,7 +204,7 @@ export class DashboardModel implements TimeModel {
+     }
+ 
+     this.annotations.list.unshift({
+-      datasource: { uid: '-- Grafana --', type: 'grafana' },
++      datasource: { uid: '-- Example Data --', type: 'grafana' },
+       name: 'Annotations & Alerts',
+       type: 'dashboard',
+       iconColor: DEFAULT_ANNOTATION_COLOR,
+diff --git a/public/app/features/datasources/components/picker/DataSourceModal.tsx b/public/app/features/datasources/components/picker/DataSourceModal.tsx
+index ea6f7e63d80..99294024bd2 100644
+--- a/public/app/features/datasources/components/picker/DataSourceModal.tsx
++++ b/public/app/features/datasources/components/picker/DataSourceModal.tsx
+@@ -339,7 +339,7 @@ function getDataSourceModalStyles(theme: GrafanaTheme2) {
+       },
+     }),
+     newDSSection: css({
+-      display: 'flex',
++      display: 'none',
+       flexDirection: 'row',
+       width: '100%',
+       justifyContent: 'space-between',
+diff --git a/public/app/features/explore/ExploreToolbar.tsx b/public/app/features/explore/ExploreToolbar.tsx
+index 766f46431e5..c1925c903e3 100644
+--- a/public/app/features/explore/ExploreToolbar.tsx
++++ b/public/app/features/explore/ExploreToolbar.tsx
+@@ -219,6 +219,9 @@ export function ExploreToolbar({ exploreId, onChangeTime, onContentOutlineToogle
+     <ShortLinkButtonMenu key="share" />,
+   ];
+ 
++  // NI fork: disable short link button
++  navBarActions.length = 0;
++
+   return (
+     <div>
+       {refreshInterval && <SetInterval func={onRunQuery} interval={refreshInterval} loading={loading} />}
+diff --git a/public/app/features/folders/state/navModel.ts b/public/app/features/folders/state/navModel.ts
+index dd53189785e..23834a076e7 100644
+--- a/public/app/features/folders/state/navModel.ts
++++ b/public/app/features/folders/state/navModel.ts
+@@ -1,10 +1,10 @@
+ import { NavModel, NavModelItem } from '@grafana/data';
+ import { t } from '@grafana/i18n';
+-import { config } from '@grafana/runtime';
+-import { contextSrv } from 'app/core/services/context_srv';
++// import { config } from '@grafana/runtime';
++// import { contextSrv } from 'app/core/services/context_srv';
+ import { getNavSubTitle } from 'app/core/utils/navBarItem-translations';
+ import { ManagerKind } from 'app/features/apiserver/types';
+-import { AccessControlAction } from 'app/types/accessControl';
++// import { AccessControlAction } from 'app/types/accessControl';
+ import { FolderDTO, FolderParent } from 'app/types/folders';
+ 
+ export const FOLDER_ID = 'manage-folder';
+@@ -52,15 +52,20 @@ export function buildNavModel(folder: FolderDTO | FolderParent, parentsArg?: Fol
+     });
+   }
+ 
+-  if (contextSrv.hasPermission(AccessControlAction.AlertingRuleRead) && config.unifiedAlertingEnabled) {
+-    model.children!.push({
+-      active: false,
+-      icon: 'bell',
+-      id: getAlertingTabID(folder.uid),
+-      text: t('browse-dashboards.manage-folder-nav.alert-rules', 'Alert rules'),
+-      url: `${folder.url}/alerting`,
+-    });
+-  }
++  // NI fork: hide Alert Rules tab in folders view
++  // if (
++  //  !isProvisioned &&
++  //  contextSrv.hasPermission(AccessControlAction.AlertingRuleRead) &&
++  //  config.unifiedAlertingEnabled
++  // ) {
++  //   model.children!.push({
++  //     active: false,
++  //     icon: 'bell',
++  //     id: getAlertingTabID(folder.uid),
++  //     text: t('browse-dashboards.manage-folder-nav.alert-rules', 'Alert rules'),
++  //     url: `${folder.url}/alerting`,
++  //   });
++  // }
+ 
+   return model;
+ }
+diff --git a/public/app/features/manage-dashboards/DashboardImportPage.tsx b/public/app/features/manage-dashboards/DashboardImportPage.tsx
+index 4652a4811bd..f48b8472596 100644
+--- a/public/app/features/manage-dashboards/DashboardImportPage.tsx
++++ b/public/app/features/manage-dashboards/DashboardImportPage.tsx
+@@ -188,7 +188,7 @@ class UnthemedDashboardImport extends PureComponent<Props> {
+             />
+           </FileDropzone>
+         </div>
+-        <div className={styles.option}>
++        <div className={styles.option} style={{ display: 'none' }}>
+           <Form onSubmit={this.getGcomDashboard} defaultValues={{ gcomDashboard: '' }}>
+             {({ register, errors }) => (
+               <Field
+diff --git a/public/app/features/plugins/datasource_srv.ts b/public/app/features/plugins/datasource_srv.ts
+index f330bb7f76e..0acbffec200 100644
+--- a/public/app/features/plugins/datasource_srv.ts
++++ b/public/app/features/plugins/datasource_srv.ts
+@@ -357,7 +357,7 @@ export class DatasourceSrv implements DataSourceService {
+       }
+ 
+       if (!filters.tracing) {
+-        const grafanaInstanceSettings = this.getInstanceSettings('-- Grafana --');
++        const grafanaInstanceSettings = this.getInstanceSettings('-- Example Data --');
+         if (grafanaInstanceSettings && filters.filter?.(grafanaInstanceSettings) !== false) {
+           base.push(grafanaInstanceSettings);
+         }
+diff --git a/public/app/features/query/components/QueryGroupOptions.tsx b/public/app/features/query/components/QueryGroupOptions.tsx
+index 2404236e483..c5fa915c0ef 100644
+--- a/public/app/features/query/components/QueryGroupOptions.tsx
++++ b/public/app/features/query/components/QueryGroupOptions.tsx
+@@ -448,7 +448,7 @@ function getStyles(theme: GrafanaTheme2) {
+       justifySelf: 'left',
+     }),
+     operator: css({
+-      color: theme.v1.palette.orange,
++      color: 'rgb(0, 155, 101)', // NI fork: use green color for operator
+     }),
+   };
+ }
+diff --git a/public/app/features/variables/pickers/shared/VariableOptions.tsx b/public/app/features/variables/pickers/shared/VariableOptions.tsx
+index aca77c6af6c..9f609b00a28 100644
+--- a/public/app/features/variables/pickers/shared/VariableOptions.tsx
++++ b/public/app/features/variables/pickers/shared/VariableOptions.tsx
+@@ -141,7 +141,9 @@ class VariableOptions extends PureComponent<Props> {
+ }
+ 
+ const getStyles = stylesFactory((theme: GrafanaTheme2) => {
+-  const checkboxImageUrl = theme.isDark ? checkboxPng : checkboxWhitePng;
++  const relativeCheckboxImageUrl = theme.isDark ? checkboxPng : checkboxWhitePng;
++  // NI fork: Use absolute URL to avoid issue with incorrect base path used when in an Emotion Global style in an iframe on Firefox
++  const checkboxImageUrl = `${document.baseURI}${relativeCheckboxImageUrl}`;
+ 
+   return {
+     hideVariableOptionIcon: css({
+diff --git a/public/app/plugins/datasource/grafana/README.md b/public/app/plugins/datasource/grafana/README.md
+deleted file mode 100644
+index 5836663e9d2..00000000000
+--- a/public/app/plugins/datasource/grafana/README.md
++++ /dev/null
+@@ -1,3 +0,0 @@
+-# Grafana Fake Data Datasource - Native Plugin
+-
+-This is the built in Fake Data Datasource that is used before any datasources are set up in your Grafana installation. It means you can create a graph without any data and still get an idea of what it would look like.
+diff --git a/public/app/plugins/datasource/grafana/components/QueryEditor.tsx b/public/app/plugins/datasource/grafana/components/QueryEditor.tsx
+index 8afe9701082..aa79a0e6bd6 100644
+--- a/public/app/plugins/datasource/grafana/components/QueryEditor.tsx
++++ b/public/app/plugins/datasource/grafana/components/QueryEditor.tsx
+@@ -65,7 +65,7 @@ export class UnthemedQueryEditor extends PureComponent<Props, State> {
+     {
+       label: 'Live Measurements',
+       value: GrafanaQueryType.LiveMeasurements,
+-      description: 'Stream real-time measurements from Grafana',
++      description: 'Stream real-time measurements',
+     },
+     {
+       label: 'List public files',
+@@ -112,7 +112,7 @@ export class UnthemedQueryEditor extends PureComponent<Props, State> {
+     } as DataQueryRequest<GrafanaQuery>;
+ 
+     getDataSourceSrv()
+-      .get('-- Grafana --')
++      .get('-- Example Data --')
+       .then((ds) => {
+         const gds = ds as GrafanaDatasource;
+         gds.query(query).subscribe({
+@@ -306,7 +306,7 @@ export class UnthemedQueryEditor extends PureComponent<Props, State> {
+           </Stack>
+         )}
+ 
+-        <Alert title="Grafana Live - Measurements" severity="info">
++        <Alert title="Grafana Live - Measurements" severity="info" style={{ display: 'none' }}>
+           This supports real-time event streams in Grafana core. This feature is under heavy development. Expect the
+           interfaces and structures to change as this becomes more production ready.
+         </Alert>
+diff --git a/public/app/plugins/datasource/grafana/img/icn-grafanadb.svg b/public/app/plugins/datasource/grafana/img/icn-grafanadb.svg
+index fcd676f28a0..2c0e2b0abc1 100644
+--- a/public/app/plugins/datasource/grafana/img/icn-grafanadb.svg
++++ b/public/app/plugins/datasource/grafana/img/icn-grafanadb.svg
+@@ -1,8 +1,9 @@
+-<svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+-<path fill-rule="evenodd" clip-rule="evenodd" d="M10.8514 8.69401C16.0985 8.69401 20.3521 6.903 20.3521 4.69369C20.3521 2.48437 16.0985 0.693359 10.8514 0.693359C5.60423 0.693359 1.35059 2.48437 1.35059 4.69369C1.35059 6.903 5.60423 8.69401 10.8514 8.69401Z" stroke="white" stroke-width="1.00008" stroke-linecap="round" stroke-linejoin="round"/>
+-<path d="M10.8514 12.6917C5.60493 12.6917 1.35059 10.9016 1.35059 8.69141" stroke="white" stroke-width="1.00008" stroke-linecap="round" stroke-linejoin="round"/>
+-<path d="M9.35124 17.1446C4.81787 16.8446 1.35059 15.1895 1.35059 13.1953" stroke="white" stroke-width="1.00008" stroke-linecap="round" stroke-linejoin="round"/>
+-<path d="M9.85128 21.6728C5.07489 21.4618 1.35059 19.7606 1.35059 17.6935V4.69141" stroke="white" stroke-width="1.00008" stroke-linecap="round" stroke-linejoin="round"/>
+-<path d="M20.3525 4.69336V9.19373" stroke="white" stroke-width="1.00008" stroke-linecap="round" stroke-linejoin="round"/>
+-<path d="M24.3346 16.9455C24.3116 16.738 24.2885 16.4844 24.1963 16.2077C24.1272 15.9311 24.0119 15.6314 23.8505 15.3087C23.6891 14.9859 23.4817 14.6631 23.2281 14.3404C23.1359 14.2251 23.0206 14.0868 22.8823 13.9715C23.0667 13.2338 22.6517 12.6114 22.6517 12.6114C21.9601 12.5653 21.499 12.8188 21.3377 12.9572C21.3146 12.9572 21.2915 12.9341 21.2454 12.9111C21.1302 12.865 21.0149 12.8188 20.8766 12.7727C20.7383 12.7266 20.623 12.7036 20.4847 12.6575C20.3463 12.6344 20.208 12.6114 20.0928 12.5883C20.0697 12.5883 20.0466 12.5883 20.0236 12.5883C19.7239 11.62 18.8478 11.2051 18.8478 11.2051C17.8796 11.8275 17.6952 12.6805 17.6952 12.6805C17.6952 12.6805 17.6952 12.7036 17.6952 12.7266C17.6491 12.7497 17.5799 12.7497 17.5338 12.7727C17.4646 12.7958 17.3955 12.8188 17.3032 12.8419C17.2341 12.865 17.1649 12.888 17.0727 12.9341C16.9344 13.0033 16.773 13.0724 16.6347 13.1416C16.4964 13.2108 16.358 13.303 16.2197 13.3952C16.1967 13.3952 16.1967 13.3721 16.1967 13.3721C14.8365 12.865 13.6377 13.4874 13.6377 13.4874C13.5224 14.9167 14.1679 15.8389 14.3063 16.0003C14.2832 16.0925 14.2371 16.1847 14.214 16.2769C14.1218 16.5997 14.0296 16.9455 13.9835 17.2913C13.9835 17.3374 13.9604 17.3835 13.9604 17.4296C12.7155 18.0521 12.3467 19.32 12.3467 19.32C13.3841 20.5188 14.606 20.588 14.606 20.588C14.7673 20.8646 14.9287 21.1182 15.1362 21.3718C15.2284 21.464 15.3206 21.5793 15.3898 21.6715C15.0209 22.755 15.4359 23.6541 15.4359 23.6541C16.5886 23.7002 17.3493 23.1469 17.5107 23.0086C17.626 23.0547 17.7413 23.0778 17.8565 23.1239C18.2023 23.2161 18.5712 23.2622 18.9401 23.2853C19.0323 23.2853 19.1245 23.2853 19.2167 23.2853H19.2628H19.2859H19.332H19.3781C19.9314 24.0691 20.8766 24.1844 20.8766 24.1844C21.5682 23.4697 21.5912 22.755 21.5912 22.5936C21.5912 22.5706 21.5912 22.5706 21.5912 22.5706V22.5475C21.7296 22.4553 21.8679 22.3401 22.0062 22.2248C22.2829 21.9712 22.5134 21.6946 22.7209 21.3949C22.7439 21.3718 22.767 21.3487 22.767 21.3026C23.5508 21.3487 24.0811 20.8185 24.0811 20.8185C23.9427 20.0116 23.4817 19.6197 23.3894 19.5505C23.3894 19.5505 23.3894 19.5505 23.3664 19.5505C23.3664 19.5044 23.3664 19.4583 23.3664 19.4122C23.3664 19.32 23.3664 19.2278 23.3664 19.1586V19.0434V19.0203V18.9973C23.3664 18.9742 23.3664 18.9742 23.3664 18.9742V18.9281V18.8589C23.3664 18.8359 23.3664 18.8128 23.3664 18.7898C23.3664 18.7667 23.3664 18.7437 23.3664 18.7206V18.6515V18.5823C23.3433 18.4901 23.3433 18.3979 23.3203 18.3287C23.2281 17.9829 23.1128 17.6601 22.9284 17.3604C22.7439 17.0607 22.5365 16.8071 22.2829 16.5766C22.0293 16.3461 21.7526 16.1847 21.4529 16.0464C21.1532 15.9081 20.8535 15.8389 20.5308 15.7928C20.3694 15.7697 20.2311 15.7697 20.0697 15.7697H20.0236H20.0005H19.9775H19.9544H19.9083C19.8853 15.7697 19.8622 15.7697 19.8392 15.7697C19.77 15.7697 19.6778 15.7928 19.6086 15.7928C19.3089 15.8389 19.0092 15.9542 18.7556 16.1155C18.502 16.2769 18.2715 16.4613 18.0871 16.6688C17.9026 16.8763 17.7643 17.1299 17.6721 17.3835C17.5799 17.6371 17.5338 17.8907 17.5107 18.1443C17.5107 18.2134 17.5107 18.2595 17.5107 18.3287C17.5107 18.3518 17.5107 18.3518 17.5107 18.3748V18.4209C17.5107 18.444 17.5107 18.4901 17.5107 18.5131C17.5338 18.6284 17.5568 18.7667 17.5799 18.882C17.6491 19.1125 17.7643 19.32 17.8796 19.5044C18.0179 19.6889 18.1793 19.8272 18.3407 19.9425C18.502 20.0577 18.6865 20.1499 18.8709 20.1961C19.0553 20.2422 19.2167 20.2652 19.4011 20.2652C19.4242 20.2652 19.4472 20.2652 19.4703 20.2652H19.4934H19.5164C19.5395 20.2652 19.5625 20.2652 19.5625 20.2652C19.5625 20.2652 19.5625 20.2652 19.5856 20.2652H19.6086H19.6317C19.6547 20.2652 19.6778 20.2652 19.7008 20.2652C19.7239 20.2652 19.7469 20.2652 19.77 20.2422C19.8161 20.2422 19.8392 20.2191 19.8853 20.2191C19.9544 20.1961 20.0236 20.173 20.0928 20.1269C20.1619 20.1038 20.208 20.0577 20.2772 20.0116C20.3002 20.0116 20.3002 19.9886 20.3233 19.9655C20.3925 19.9194 20.3925 19.8272 20.3463 19.7811C20.3002 19.735 20.2311 19.7119 20.185 19.758C20.1619 19.758 20.1619 19.7811 20.1389 19.7811C20.0928 19.8041 20.0466 19.8272 19.9775 19.8502C19.9314 19.8733 19.8622 19.8733 19.8161 19.8964C19.7931 19.8964 19.7469 19.8964 19.7239 19.8964C19.7008 19.8964 19.7008 19.8964 19.6778 19.8964C19.6547 19.8964 19.6547 19.8964 19.6317 19.8964C19.6086 19.8964 19.6086 19.8964 19.5856 19.8964C19.5625 19.8964 19.5395 19.8964 19.5395 19.8964H19.5164H19.4934C19.4703 19.8964 19.4703 19.8964 19.4472 19.8964C19.3089 19.8733 19.1937 19.8502 19.0553 19.7811C18.917 19.735 18.8017 19.6428 18.6865 19.5505C18.5712 19.4583 18.479 19.32 18.4098 19.2047C18.3407 19.0895 18.2715 18.9281 18.2484 18.7667C18.2254 18.6976 18.2254 18.6053 18.2254 18.5362C18.2254 18.5131 18.2254 18.4901 18.2254 18.467V18.444V18.4209C18.2254 18.3748 18.2254 18.3287 18.2484 18.2826C18.3176 17.9368 18.479 17.614 18.7556 17.3374C18.8248 17.2682 18.894 17.2221 18.9631 17.153C19.0323 17.1068 19.1245 17.0607 19.1937 17.0146C19.2859 16.9685 19.3781 16.9455 19.4472 16.9224C19.5395 16.8994 19.6317 16.8763 19.7239 16.8763C19.77 16.8763 19.8161 16.8763 19.8622 16.8763C19.8853 16.8763 19.8853 16.8763 19.8853 16.8763H19.9314H19.9544H20.0005C20.0928 16.8763 20.208 16.8994 20.3002 16.9224C20.5077 16.9685 20.6921 17.0377 20.8766 17.153C21.2454 17.3604 21.5451 17.6832 21.7526 18.0521C21.8448 18.2365 21.914 18.444 21.9601 18.6515C21.9601 18.6976 21.9832 18.7667 21.9832 18.8128V18.8589V18.905C21.9832 18.9281 21.9832 18.9281 21.9832 18.9511C21.9832 18.9742 21.9832 18.9742 21.9832 18.9973V19.0434V19.0895C21.9832 19.1125 21.9832 19.1586 21.9832 19.1817C21.9832 19.2508 21.9832 19.297 21.9601 19.3661C21.9601 19.4122 21.9371 19.4814 21.9371 19.5275C21.9371 19.5736 21.914 19.6428 21.8909 19.6889C21.8679 19.8041 21.8218 19.9194 21.7757 20.0116C21.6835 20.2191 21.5682 20.4266 21.4299 20.6341C21.1532 21.0029 20.7844 21.3257 20.3463 21.5101C20.1389 21.6023 19.9083 21.6715 19.6778 21.7176C19.5625 21.7407 19.4472 21.7407 19.332 21.7637H19.3089H19.2859H19.2398H19.1937H19.1706C19.1014 21.7637 19.0553 21.7637 18.9862 21.7637C18.7326 21.7407 18.479 21.6946 18.2484 21.6254C18.0179 21.5562 17.7643 21.464 17.5568 21.3487C17.1188 21.1182 16.7269 20.7955 16.4041 20.4035C16.2428 20.2191 16.1044 20.0116 16.0122 19.7811C15.897 19.5505 15.8048 19.32 15.7356 19.0895C15.6664 18.8589 15.6203 18.6053 15.6203 18.3748V18.3287V18.3056V18.2595V18.1212V18.0982V18.0521V18.029C15.6203 18.0059 15.6203 17.9598 15.6203 17.9368C15.6203 17.8215 15.6434 17.6832 15.6434 17.5679C15.6664 17.4527 15.6895 17.3143 15.7125 17.1991C15.7356 17.0838 15.7586 16.9455 15.8047 16.8302C15.8739 16.5997 15.9661 16.3691 16.0583 16.1386C16.2658 15.7006 16.5194 15.3087 16.8422 15.009C16.9113 14.9398 17.0035 14.8476 17.0958 14.7784C17.188 14.7093 17.2802 14.6401 17.3724 14.594C17.4646 14.5248 17.5568 14.4787 17.649 14.4326C17.6952 14.4096 17.7413 14.3865 17.7874 14.3634C17.8104 14.3634 17.8335 14.3404 17.8565 14.3404C17.8796 14.3404 17.9026 14.3173 17.9257 14.3173C18.0179 14.2712 18.1332 14.2482 18.2254 14.2021C18.2484 14.2021 18.2715 14.179 18.2946 14.179C18.3176 14.179 18.3407 14.156 18.3637 14.156C18.4098 14.1329 18.479 14.1329 18.5251 14.1099C18.5482 14.1099 18.5712 14.0868 18.6173 14.0868C18.6404 14.0868 18.6634 14.0868 18.7095 14.0637C18.7326 14.0637 18.7556 14.0637 18.8017 14.0407H18.8478H18.894C18.917 14.0407 18.9401 14.0407 18.9862 14.0176C19.0092 14.0176 19.0553 14.0176 19.0784 13.9946C19.1014 13.9946 19.1475 13.9946 19.1706 13.9946C19.1937 13.9946 19.2167 13.9946 19.2398 13.9946H19.2859H19.3089H19.332C19.355 13.9946 19.4011 13.9946 19.4242 13.9946H19.4703H19.4934C19.5164 13.9946 19.5395 13.9946 19.5625 13.9946C19.6778 13.9946 19.77 13.9946 19.8853 13.9946C20.0928 13.9946 20.3002 14.0176 20.5077 14.0637C20.8996 14.1329 21.2685 14.2712 21.6143 14.4326C21.9601 14.594 22.2598 14.8015 22.5134 15.032C22.5365 15.0551 22.5365 15.0551 22.5595 15.0781C22.5826 15.1012 22.5826 15.1012 22.6056 15.1242C22.6287 15.1473 22.6748 15.1703 22.6978 15.2164C22.7209 15.2625 22.767 15.2625 22.79 15.3087C22.8131 15.3548 22.8592 15.3778 22.8823 15.4009C22.9975 15.5161 23.0897 15.6314 23.182 15.7697C23.3664 16.0003 23.5278 16.2539 23.643 16.4844C23.643 16.5074 23.6661 16.5074 23.6661 16.5305C23.6661 16.5536 23.6891 16.5536 23.6891 16.5766C23.7122 16.5997 23.7122 16.6227 23.7352 16.6688C23.7583 16.6919 23.7583 16.7149 23.7814 16.761C23.8044 16.7841 23.8044 16.8071 23.8275 16.8533C23.8736 16.9685 23.9197 17.0607 23.9427 17.153C23.9888 17.3143 24.035 17.4527 24.058 17.5679C24.0811 17.614 24.1272 17.6601 24.1733 17.6371C24.2194 17.6371 24.2655 17.591 24.2655 17.5449C24.3577 17.2682 24.3577 17.1068 24.3346 16.9455Z" fill="white"/>
+-</svg>
++<?xml version="1.0" encoding="utf-8"?>
++<svg viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
++  <path fill-rule="evenodd" clip-rule="evenodd" d="M10.8514 8.69401C16.0985 8.69401 20.3521 6.903 20.3521 4.69369C20.3521 2.48437 16.0985 0.693359 10.8514 0.693359C5.60423 0.693359 1.35059 2.48437 1.35059 4.69369C1.35059 6.903 5.60423 8.69401 10.8514 8.69401Z" stroke="white" stroke-width="1.00008" stroke-linecap="round" stroke-linejoin="round"/>
++  <path d="M10.8514 12.6917C5.60493 12.6917 1.35059 10.9016 1.35059 8.69141" stroke="white" stroke-width="1.00008" stroke-linecap="round" stroke-linejoin="round"/>
++  <path d="M9.35124 17.1446C4.81787 16.8446 1.35059 15.1895 1.35059 13.1953" stroke="white" stroke-width="1.00008" stroke-linecap="round" stroke-linejoin="round"/>
++  <path d="M9.85128 21.6728C5.07489 21.4618 1.35059 19.7606 1.35059 17.6935V4.69141" stroke="white" stroke-width="1.00008" stroke-linecap="round" stroke-linejoin="round"/>
++  <path d="M20.3525 4.69336V9.19373" stroke="white" stroke-width="1.00008" stroke-linecap="round" stroke-linejoin="round"/>
++  <path class="cls-1" d="M 14.666 15.622 L 14.666 20.868 L 12 20.868 L 12 15.622 L 14.666 15.622 Z M 17.334 13 C 18.795 12.989 19.987 14.163 19.999 15.622 L 19.999 20.868 L 17.334 20.868 L 17.334 15.622 L 14.666 15.622 L 14.666 13 L 17.334 13 Z M 24 13 L 24 20.868 C 22.539 20.883 21.344 19.708 21.334 18.246 L 21.334 13 L 24 13 Z" style="fill: rgb(255, 255, 255);"/>
++</svg>
+\ No newline at end of file
+diff --git a/public/app/plugins/datasource/grafana/plugin.json b/public/app/plugins/datasource/grafana/plugin.json
+index 61dca99cfb1..b22946cccaa 100644
+--- a/public/app/plugins/datasource/grafana/plugin.json
++++ b/public/app/plugins/datasource/grafana/plugin.json
+@@ -1,6 +1,6 @@
+ {
+   "type": "datasource",
+-  "name": "-- Grafana --",
++  "name": "-- Example Data --",
+   "id": "grafana",
+   "builtIn": true,
+ 
+diff --git a/public/app/routes/routes.tsx b/public/app/routes/routes.tsx
+index ae6452a1d99..7308b4bfe81 100644
+--- a/public/app/routes/routes.tsx
++++ b/public/app/routes/routes.tsx
+@@ -35,11 +35,10 @@ export function getAppRoutes(): RouteDescriptor[] {
+     // In order to make it possible we need to register them first due to how `<Switch>` is evaluating routes. (This will be unnecessary once/when we upgrade to React Router v6 and start using `<Routes>` instead.)
+     ...getAppPluginRoutes(),
+     {
++      // NI fork: don't show the home page, redirect to the dashboard list
+       path: '/',
+-      pageClass: 'page-dashboard',
+-      routeName: DashboardRoutes.Home,
+       component: SafeDynamicImport(
+-        () => import(/* webpackChunkName: "DashboardPageProxy" */ '../features/dashboard/containers/DashboardPageProxy')
++        () => import(/* webpackChunkName: "DashboardListPage"*/ 'app/features/browse-dashboards/BrowseDashboardsPage')
+       ),
+     },
+     {
+diff --git a/public/app/types/events.ts b/public/app/types/events.ts
+index 5c7e4ba151b..4995e79f645 100644
+--- a/public/app/types/events.ts
++++ b/public/app/types/events.ts
+@@ -202,6 +202,13 @@ export class DashboardSavedEvent extends BusEventBase {
+   static type = 'dashboard-saved';
+ }
+ 
++/**
++ * Custom event that triggers a dashboard refresh.
++ */
++export class NIRefreshDashboardEvent extends BusEventBase {
++  static type = 'ni-refresh-dashboard';
++}
++
+ export class AnnotationQueryStarted extends BusEventWithPayload<AnnotationQuery> {
+   static type = 'annotation-query-started';
+ }
+diff --git a/public/img/fav32.png b/public/img/fav32.png
+index af2a31715e7af469c53eebf20e0b20c1b8714c9e..2af2bd1e046b7b60f37467264f859a9332b8e98e 100644
+GIT binary patch
+literal 1225
+zcmeAS@N?(olHy`uVBq!ia0vp^3LwnE3?yBabR7dyEa{HEjtmSN`?>!lvVtU&J%W50
+z7^>757#dm_7=8hT8eT9klo~KFyh>nTu$sZZAYL$MSD+081Cv;QPl)SRyx`O4PtRYy
+zc=F=e$4{SLzkT!a&FfchU%z_u`rU{3uin1-0tUzieE;_S$M^5wzJ2@t{riVcA8$Rp
+zd+O?i(^oH?yK(u=`*$FTuR!$m*{c^9ZeBTk?ZVZ&H}5}rR5GPiE7nCf-c2XY%{0|7
+zqCRKB%DHE+Us}6=yK{b|cATqTyn9@8;jM@FA{%oV?Btmpl$acp80{4t^CNbjI`sL=
+z=O5pH%-ga`HpG&}QQ0mhG^#O=!A91-IQG=l^Ygc^k_)wBa!_P-QnAkotDoEV=H1(0
+zKY#uH`RmW`-}j$BifYPZuv1{Ll@F{+yL9{7ntfYW@7*$c<Fe4&Ov7YvqZA+G6d%o4
+z7XdF_<7DpxXOI2-@w0K>1jR5L`4B6)5G$1k`}mfkT_+E1KfZt0$%9kYE;LH^RtmS>
+zc68sbpFayHH?cY@GubQhdT19<ZvOZC@892loC~6q!|k>m+gCKDncZ2H-&416Qq#{L
+zKaO2G<CGsccgxBxNB5{kIRHc3w<1|H*12$UGoOcc;lxIVya)zcxep&dtUIvXA|sH^
+zNtM}AY1ys~DV^m>?WKwBrI|g|OLwln`QT2+l4<d6#fj}DrBhqa-?;MO<Ht+4uTNMt
+zH@&;6ZP659BtCfd_`%c151%~&#^%RQAD_K^{`mRR*YDmwefj+V|Njr$z5-JfgJemN
+zUvT!pqlag7e*5#Y>(8G*Kf&P7&p+*-y*HX4046gA#w2fdmyIUL^FRrdy~NYkmHinr
+zqo@jZKa-d}P`caG#WBR<baFyM$|2?%krEL%Z+v9nOJnon^R#K0+c}SG$&!N(UTlY^
+zPGtR<BFOdRiKs}UgJ)c%tLTZ);Oh*ZOt$Vw;0oDNTJjZ`+<19<d!9D5otQOa*2|YO
+zqYDm;ctl1;-ezcAJ9qBh=Ebv?Oy1l*x3_n-G`~~h?z!456%|z{y{syK|Jb$b*U#kO
+z2U)TL8qJFiXlhtksF<8lwz0W$j%|g4l988GB;)$R5+9$EoR}IXr=%dGfYw;AEU8UQ
+z`@Zy?IkV=?oI88={AqGp;JVNCsOkx>AKs@=oqnsOwffSfReQ76#KxY^ejOmfam9Sc
+zu3IK%OFg~Jwr}B6W6fm|IkByL%Hz-l*KS^I2ya|c61$x@q%om?{@UEieEA5+|18nB
+zKlD5j@;uo&S<QbYS6|-3%**L#W>{u#GclNXW~O!iv7VpYVoWzzb&Kgo?(&gX;gIsP
+zYpQnmx+vbRucq0JXQsYZYYJZY=2xh+i{r($TFgwVCT!tiyP(25Wr5c|0paHdm~Ti(
+zsvNQS$PmWH;PLK?61%B_B`~H`OI#yLQW8s2t&)pUffR$0fsv7}fw8WEVTh5Tm9d$X
+qp@Fu6ft7)Qcg*HpC>nC}Q!>*kaci(*<YohEVDNPHb6Mw<&;$Smds{*P
+
+delta 1108
+zcmV-a1grbW3El{h8Gi-<0047(dh`GQ02y>eSaefwW^{L9a%BKPWN%_+AW3auXJt}l
+zVPtu6$z?nM00aO@L_t(|+O$`@ZWBQiy_4)(CINdt!RbJ23A?7S(@}w4ArMg<0YcCi
+z7c>+k5e*a&9^xs$8-b9h?0i8&L5-2tf-cJ!U=k-#c{sBk$A9~nT{~EebhPU`Gxwgo
+zkC|&m6O3OMOaqTKpaj&?AKKPobxhG@Lm00Bf=C^NN{3azCir?`tPv1*fH`=g^Ir+T
+zct(6NP*hBB0iS>-;7AXh6kY<c^4J7qd~@O*8@HrP{9cwZ|Cf=6u9jDzDGcAhqY7j^
+zGVy2)2u(1GQh!f00gSU=<DN0fxFca4hA2~bU^61Nq)0eXb{m5bDU$T8%mMEn5e6r&
+z3_p!wyeYH2rZO(`rU@*Gb#gsP?=(i81FaFpEs@RRmYVolnf<GSP|7@uu7Y0+=C(2q
+zIBlihx99))?6?TS%ssrE^t<+4B!QhvW<}O{kicB(?SC+S2a2zlMa)%!9291_h&6*J
+z8EpVo`qj`|&@Dnx;*84a*X^eIC{92@!hIfqC&*G6-??VinMRvTrxHuRYgmh?f!{^Q
+z*Vr^|?_AFwoEu!H8gz9qUx>a7bXEY!3#PM2A>-9-9dni7+5ij`djo6TYDm9mJJ4l8
+zo{J`sKz|+kJ<v%#wtdODa}!^sqr}9#j{4WAj5SOE?|H~9pAMbs*wZg>oz`8MiootI
+z#9s#i-Ca09xH2?alyky(KJ~yJlp5i^mAY>)LB8bEqxJI&b1l4Ygb3^|n{~mICAa~Q
+z7oig@!AtI(&R0|SY-LHN?%EdSEsvfIY?S2OLw_HE-8<Pe(hyG#aZ@4W0V$tm&Dh%0
+z*lIvmA#@OR?`4a~${PShzz8R*o5{qIiaF0XcH4FWx^m%@P~+7=%!9~vADF&_2_@F-
+z$CXz`o<Ko;VFE}b9dV9>Mt(zxJ&bptaJl<<c(it(_=&o|{kk%c89o9>tL++1Q_a1c
+zqkmD|dp=Z-Jr4HF10ti>y3fp?z!&`f(tT<U-8_xv#jhs=Swndj?7hrpAXx^Y+}Z-=
+z`PobUtjE5byuyXNIeWD~zxO6<P>;6dEf{PB^0Sximhvvxf14E>ihL^6boNOwkXW=w
+z-iCWtwh`05t<F~LmDr|q|Gl{)d%$orGJi$2nG5Rw0s9{iDh~2o*%>*++4{_ay)sr;
+z{QILB_Z8ySYXUz!H|9w|wcg=9%Fmql_YvCY5@KIt2pEBuD`KEpdQ_e{7j9z4AV7r)
+zJ7MAS@{u#PveOz#fa!cf`&3JwZb!CxV|bv~3U$e7%>dEu6x`O0#kAo(zQ-I*piO^m
+z<_=1b(|WS_ZJ_kwVA-Fo69$NE`pAH2vhdCMFMm!|<Im^gf`n*1tFE9&^T|`+V?FR!
+afB^t*a$NE8q*D<90000<MNUMnLSTaMBN5a9
+
+diff --git a/public/img/grafana_com_auth_icon.svg b/public/img/grafana_com_auth_icon.svg
+index 72702223dc7..124aa512042 100644
+--- a/public/img/grafana_com_auth_icon.svg
++++ b/public/img/grafana_com_auth_icon.svg
+@@ -1,7 +1,7 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <!-- Generator: Adobe Illustrator 20.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+ <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+-	 width="351px" height="365px" viewBox="0 0 351 365" style="enable-background:new 0 0 351 365;" xml:space="preserve">
++	 width="351px" height="365px" viewBox="0 0 0 0" style="enable-background:new 0 0 351 365;" xml:space="preserve">
+ <style type="text/css">
+ 	.st0{fill:url(#SVGID_1_);}
+ </style>
+diff --git a/public/img/grafana_enterprise_typelogo.svg b/public/img/grafana_enterprise_typelogo.svg
+index 30ee925787e..f70fc12b29a 100644
+--- a/public/img/grafana_enterprise_typelogo.svg
++++ b/public/img/grafana_enterprise_typelogo.svg
+@@ -2,7 +2,7 @@
+ <!-- Generator: Adobe Illustrator 19.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+ <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+ <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+-	 width="168px" height="63.6px" viewBox="0 0 168 63.6" style="enable-background:new 0 0 168 63.6;" xml:space="preserve">
++	 width="168px" height="63.6px" viewBox="0 0 0 0" style="enable-background:new 0 0 168 63.6;" xml:space="preserve">
+ <style type="text/css">
+ 	.st0{fill:#E6E7E8;}
+ </style>
+diff --git a/public/img/grafana_icon.svg b/public/img/grafana_icon.svg
+index e91f3abdb41..8d08d9facb2 100644
+--- a/public/img/grafana_icon.svg
++++ b/public/img/grafana_icon.svg
+@@ -1,7 +1,7 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <!-- Generator: Adobe Illustrator 20.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+ <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+-	 width="351px" height="365px" viewBox="0 0 351 365" style="enable-background:new 0 0 351 365;" xml:space="preserve">
++	 width="351px" height="365px" viewBox="0 0 0 0" style="enable-background:new 0 0 351 365;" xml:space="preserve">
+ <style type="text/css">
+ 	.st0{fill:url(#SVGID_1_);}
+ </style>
+diff --git a/public/img/grafana_mask_icon.svg b/public/img/grafana_mask_icon.svg
+index 619a218d44e..2d86adb88bd 100644
+--- a/public/img/grafana_mask_icon.svg
++++ b/public/img/grafana_mask_icon.svg
+@@ -1,5 +1,5 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+-<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
++<svg width="16px" height="16px" viewBox="0 0 0 0" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+     <!-- Generator: Sketch 46 (44423) - http://www.bohemiancoding.com/sketch -->
+     <title>grafana_mask_icon</title>
+     <desc>Created with Sketch.</desc>
+diff --git a/public/img/grafana_mask_icon_white.svg b/public/img/grafana_mask_icon_white.svg
+index d810d3735c7..3126c311528 100644
+--- a/public/img/grafana_mask_icon_white.svg
++++ b/public/img/grafana_mask_icon_white.svg
+@@ -1,5 +1,5 @@
+ ﻿<?xml version="1.0" encoding="UTF-8"?>
+-<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
++<svg width="16px" height="16px" viewBox="0 0 0 0" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+     <!-- Generator: Sketch 46 (44423) - http://www.bohemiancoding.com/sketch -->
+     <title>grafana_mask_icon</title>
+     <desc>Created with Sketch.</desc>
+diff --git a/public/img/grafana_text_logo-dark.svg b/public/img/grafana_text_logo-dark.svg
+index 33be11e1ec7..177caede94d 100644
+--- a/public/img/grafana_text_logo-dark.svg
++++ b/public/img/grafana_text_logo-dark.svg
+@@ -1,4 +1,4 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 568 92.92" style="enable-background:new 0 0 568 92.92" xml:space="preserve">
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" style="enable-background:new 0 0 568 92.92" xml:space="preserve">
+   <style>
+     .st0{fill:#ccccdc}
+   </style>
+diff --git a/public/img/grafana_text_logo-light.svg b/public/img/grafana_text_logo-light.svg
+index 13ba4548af3..6c803599e48 100644
+--- a/public/img/grafana_text_logo-light.svg
++++ b/public/img/grafana_text_logo-light.svg
+@@ -1,4 +1,4 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 568 92.92" style="enable-background:new 0 0 568 92.92" xml:space="preserve">
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" style="enable-background:new 0 0 568 92.92" xml:space="preserve">
+   <style>
+     .st0{fill:#24292e}
+   </style>
+diff --git a/public/img/icons/mono/panel-add.svg b/public/img/icons/mono/panel-add.svg
+index fc441aa9201..8a000e75f98 100644
+--- a/public/img/icons/mono/panel-add.svg
++++ b/public/img/icons/mono/panel-add.svg
+@@ -1 +1 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 117.8 64"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="96.44" y1="83.7" x2="96.44" y2="-9.48"><stop offset="0" stop-color="#FFF23A"/><stop offset=".04" stop-color="#FEE62D"/><stop offset=".12" stop-color="#FED41A"/><stop offset=".2" stop-color="#FDC90F"/><stop offset=".28" stop-color="#FDC60B"/><stop offset=".67" stop-color="#F28F3F"/><stop offset=".89" stop-color="#ED693C"/><stop offset="1" stop-color="#E83E39"/></linearGradient><path d="M15.2 22.7H1.9c-1.1 0-1.9.9-1.9 1.9v37.5C0 63.2.9 64 1.9 64h13.3c1.1 0 1.9-.9 1.9-1.9V24.6c0-1.1-.8-1.9-1.9-1.9zM36.3 10.2H23c-1.1 0-1.9.9-1.9 1.9v50c0 1.1.9 1.9 1.9 1.9h13.3c1.1 0 1.9-.9 1.9-1.9v-50c0-1-.9-1.9-1.9-1.9zM57.3 32H44c-1.1 0-1.9.9-1.9 1.9V62c0 1.1.9 1.9 1.9 1.9h13.3c1.1 0 1.9-.9 1.9-1.9V34c0-1.1-.8-2-1.9-2zM70.1 38V26.1c0-3.4 2.7-6.1 6.1-6.1h4.1V2c0-1.1-.9-1.9-1.9-1.9H65.1c-1.1-.1-2 .8-2 1.9v60.1c0 1.1.9 1.9 1.9 1.9h13.3c1.1 0 1.9-.9 1.9-1.9v-18h-4.1c-3.2 0-6-2.8-6-6.1z"/><path fill="url(#a)" d="M116.7 24.9H103.6V11.8c0-.6-.5-1.1-1.1-1.1h-12c-.6 0-1.1.5-1.1 1.1v13.1H76.2c-.6 0-1.1.5-1.1 1.1v12c0 .6.5 1.1 1.1 1.1h13.2v13.2c0 .6.5 1.1 1.1 1.1h11.9c.6 0 1.1-.5 1.1-1.1V39.1h13.1c.6 0 1.1-.5 1.1-1.1V26.1c.1-.6-.4-1.2-1-1.2z"/></svg>
+\ No newline at end of file
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 117.8 64"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="96.44" y1="83.7" x2="96.44" y2="-9.48"><stop offset="0" stop-color="#FFF23A"/><stop offset=".04" stop-color="#FEE62D"/><stop offset=".12" stop-color="#FED41A"/><stop offset=".2" stop-color="#FDC90F"/><stop offset=".28" stop-color="#FDC60B"/><stop offset=".67" stop-color="#F28F3F"/><stop offset=".89" stop-color="#ED693C"/><stop offset="1" stop-color="#E83E39"/></linearGradient><path d="M15.2 22.7H1.9c-1.1 0-1.9.9-1.9 1.9v37.5C0 63.2.9 64 1.9 64h13.3c1.1 0 1.9-.9 1.9-1.9V24.6c0-1.1-.8-1.9-1.9-1.9zM36.3 10.2H23c-1.1 0-1.9.9-1.9 1.9v50c0 1.1.9 1.9 1.9 1.9h13.3c1.1 0 1.9-.9 1.9-1.9v-50c0-1-.9-1.9-1.9-1.9zM57.3 32H44c-1.1 0-1.9.9-1.9 1.9V62c0 1.1.9 1.9 1.9 1.9h13.3c1.1 0 1.9-.9 1.9-1.9V34c0-1.1-.8-2-1.9-2zM70.1 38V26.1c0-3.4 2.7-6.1 6.1-6.1h4.1V2c0-1.1-.9-1.9-1.9-1.9H65.1c-1.1-.1-2 .8-2 1.9v60.1c0 1.1.9 1.9 1.9 1.9h13.3c1.1 0 1.9-.9 1.9-1.9v-18h-4.1c-3.2 0-6-2.8-6-6.1z"/><path fill="#009B65" d="M116.7 24.9H103.6V11.8c0-.6-.5-1.1-1.1-1.1h-12c-.6 0-1.1.5-1.1 1.1v13.1H76.2c-.6 0-1.1.5-1.1 1.1v12c0 .6.5 1.1 1.1 1.1h13.2v13.2c0 .6.5 1.1 1.1 1.1h11.9c.6 0 1.1-.5 1.1-1.1V39.1h13.1c.6 0 1.1-.5 1.1-1.1V26.1c.1-.6-.4-1.2-1-1.2z"/></svg>
+diff --git a/public/views/index.html b/public/views/index.html
+index 2ee208bbb78..51ff03e12ca 100644
+--- a/public/views/index.html
++++ b/public/views/index.html
+@@ -14,6 +14,19 @@
+ 
+     <base href="[[.AppSubUrl]]/" />
+ 
++    <script nonce="[[.Nonce]]">
++      // NI fork: Ensure that grafana is loaded within an iframe unless it is running locally
++      if (window.self === window.top && window.location.hostname !== 'localhost') {
++        if (!window.location.href.startsWith(window.location.origin + '/dashboardhost')) {
++          console.log('Unexpected location found outside of an iframe. Expected to be hosted at "/dashboardhost"');
++        } else {
++          // Redirect to the iframe-hosted version of grafana, which is located at /dashboards rather than /dashboardhost
++          let newHref = window.location.href.replace(window.location.origin + '/dashboardhost', window.location.origin + '/dashboards');
++          window.location.replace(newHref);
++        }
++      }
++    </script>
++
+     <link rel="icon" type="image/png" href="[[.FavIcon]]" />
+     <link rel="apple-touch-icon" sizes="180x180" href="[[.AppleTouchIcon]]" />
+     <link rel="mask-icon" href="[[.Assets.ContentDeliveryURL]]public/img/grafana_mask_icon.svg" color="#F05A28" />
+@@ -203,14 +216,16 @@
+     </style>
+ 
+     <div class="preloader">
+-      <div class="preloader__enter">
++      <!-- <div class="preloader__enter">
+         <div class="preloader__bounce">
+           <div class="preloader__logo" aria-live="polite" role="status" aria-label="Loading Grafana"></div>
+         </div>
+       </div>
+-      <div class="preloader__text preloader__text--fail">
++     <div class="preloader__text">Loading Grafana</div> -->
++     <div class="preloader__text preloader__text--fail">
+         <main>
+-          <h1>If you're seeing this Grafana has failed to load its application files</h1>
++          <h1>The dashboard application failed to load.</h1>
++          <!--
+           <ol class="preloader__error-list">
+             <li>This could be caused by your reverse proxy settings.</li>
+             <li>If you host grafana under a subpath make sure your <code>grafana.ini</code> <code>root_url</code> setting
+@@ -223,6 +238,7 @@
+                 supported browsers </a
+               >.</li>
+           </ol>
++          -->
+         </main>
+       </div>
+       <script nonce="[[.Nonce]]">
+@@ -302,6 +318,8 @@
+         var preloader = document.getElementsByClassName("preloader");
+         if (preloader.length) {
+           preloader[0].className = "preloader preloader--done";
++          // NI fork: Tells iframe-host loading indicator when to disappear
++          window.parent.postMessage({ type: 'iframeLoaded' }, window.parent.location.origin);
+         }
+       }
+ 
