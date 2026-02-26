@@ -1,8 +1,6 @@
 module github.com/grafana/grafana/apps/alerting/notifications
 
-go 1.24.4
-
-replace github.com/grafana/grafana => ../../..
+go 1.25.7
 
 require (
 	github.com/grafana/grafana v11.4.0-00010101000000-000000000000+incompatible
