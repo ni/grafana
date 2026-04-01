@@ -1,0 +1,199 @@
+name: Sync upstream tags to NI branches
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # Daily at 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Specific upstream tag to process (e.g. v11.6.5). Leave empty to process all new stable tags.'
+        required: false
+  push:
+    branches:
+      - users/saradei/3779959 # remove after testing
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  sync-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout NI fork
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config rerere.enabled true
+
+      - name: Restore rerere cache
+        run: |
+          git fetch origin rerere-cache 2>/dev/null || true
+          if git rev-parse --verify origin/rerere-cache &>/dev/null; then
+            mkdir -p .git/rr-cache
+            git archive origin/rerere-cache rr-cache 2>/dev/null \
+              | tar -x --strip-components=1 -C .git/rr-cache/ 2>/dev/null || true
+            echo "Rerere cache restored."
+          else
+            echo "No rerere cache branch found, starting fresh."
+          fi
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/grafana/grafana.git
+          git fetch upstream --tags --force --no-recurse-submodules
+
+      - name: Find new tags to process
+        id: find-tags
+        env:
+          TAG_INPUT: ${{ inputs.tag }}
+        run: |
+          if [ -n "$TAG_INPUT" ]; then
+            echo "tags=$TAG_INPUT" >> "$GITHUB_OUTPUT"
+            echo "Processing requested tag: $TAG_INPUT"
+          else
+            # Get the latest upstream stable tag
+            LATEST_TAG=$(git tag | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+            echo "Latest upstream tag: ${LATEST_TAG:-none}"
+
+            # Check if we already have a ni- tag for it
+            if git tag | grep -q "^ni-${LATEST_TAG}$"; then
+              LATEST_TAG=""
+              echo "Already up to date."
+            fi
+
+            echo "tags=${LATEST_TAG}" >> "$GITHUB_OUTPUT"
+            echo "Tag to process: ${LATEST_TAG:-none}"
+          fi
+
+      - name: Rebase NI commits onto latest tag
+        id: rebase
+        env:
+          TAGS: ${{ steps.find-tags.outputs.tags }}
+          NI_BRANCH: origin/grafana-upgrade-v12
+        run: |
+          TAG="${TAGS}"
+
+          echo "::group::Processing $TAG"
+
+          # Copy scripts to /tmp before calling rebase.sh — rebase.sh does a
+          # `git checkout -B` which wipes the working tree (and the scripts dir).
+          TMPSCRIPTS=$(mktemp -d)
+          cp -r scripts/upstream-sync/. "$TMPSCRIPTS/"
+
+          if NI_BRANCH="$NI_BRANCH" bash "$TMPSCRIPTS/rebase.sh" "$TAG"; then
+            NI_BRANCH="$NI_BRANCH" bash "$TMPSCRIPTS/finalize.sh" "$TAG"
+          else
+            # Capture the partial rebase tip: the last NI commit successfully applied
+            # on top of $TAG. Set the conflict branch to this commit before aborting
+            # so the branch is rooted at $TAG, not at $NI_BRANCH.
+            PARTIAL_HEAD=$(git rev-parse HEAD)
+            git rebase --abort
+            git checkout -B "conflict/ni-$TAG" "$PARTIAL_HEAD"
+            echo "conflict_tag=$TAG" >> "$GITHUB_OUTPUT"
+            echo "TAG=$TAG" >> "$GITHUB_ENV"
+            git push origin "conflict/ni-$TAG" --force
+            echo "::endgroup::"
+            exit 1
+          fi
+
+          echo "::endgroup::"
+
+      - name: Save rerere cache
+        if: always()
+        run: |
+          if [ ! -d .git/rr-cache ] || [ -z "$(ls -A .git/rr-cache)" ]; then
+            echo "No rerere cache to save."
+            exit 0
+          fi
+          git fetch origin rerere-cache
+          git checkout origin/rerere-cache -B rerere-cache
+          mkdir -p rr-cache
+          cp -r .git/rr-cache/. rr-cache/
+          git add rr-cache
+          git diff --quiet --cached || git commit -m "chore: update rerere cache"
+          git push origin rerere-cache
+          git checkout -
+
+      - name: Open or update conflict PR
+        if: failure() && steps.rebase.outputs.conflict_tag != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DATE=$(date -u +%Y-%m-%d)
+
+          # Write the PR body to a temp file to avoid the double-heredoc problem
+          # that occurs when using `--body-file - << EOF || cmd << EOF`.
+          TMPBODY=$(mktemp)
+          cat > "$TMPBODY" << EOF
+          The automated rebase of NI commits onto upstream \`${TAG}\` failed on ${DATE}.
+
+          \`git rerere\` could not resolve all conflicts automatically.
+
+          \`conflict/ni-${TAG}\` shows the NI commits applied cleanly onto \`${TAG}\` up to the first unresolved conflict.
+
+          **To complete the sync manually:**
+
+          1. Check out a branch that has \`scripts/upstream-sync/\` (\`main\` once merged, or \`users/saradei/3779959\` during testing):
+
+          \`\`\`sh
+          git fetch origin && git fetch upstream --tags
+          git checkout <branch-with-scripts>
+          \`\`\`
+
+          2. Re-run the rebase. It will re-create \`conflict/ni-${TAG}\` from the NI source branch and stop at each conflict:
+
+          \`\`\`sh
+          bash scripts/upstream-sync/rebase.sh ${TAG}
+          \`\`\`
+
+          3. For each conflicted file, resolve the conflict markers then continue:
+
+          \`\`\`sh
+          git add <file> && git rebase --continue
+          \`\`\`
+
+          4. When the rebase completes successfully:
+
+          \`\`\`sh
+          git push origin conflict/ni-${TAG} --force
+          \`\`\`
+
+          Once pushed, CI will restore NI workflows, create the \`ni-${TAG}\` tag, and close this PR.
+
+          **Optional:** push your rerere resolutions so CI can reuse them for future conflicts:
+
+          \`\`\`sh
+          git fetch origin rerere-cache 2>/dev/null || true
+          git checkout origin/rerere-cache -B rerere-cache 2>/dev/null \\
+            || { git checkout --orphan rerere-cache && git rm -rf . --quiet 2>/dev/null || true; }
+          mkdir -p rr-cache && cp -r .git/rr-cache/. rr-cache/
+          git add rr-cache && git diff --quiet --cached \\
+            || git commit -m 'chore: update rerere cache from manual resolution'
+          git push origin rerere-cache
+          \`\`\`
+
+          Refer to [contribute/upstream-sync.md](../blob/main/contribute/upstream-sync.md) for the full process.
+          EOF
+
+          gh pr create \
+            --title "conflict: rebase onto ${TAG} needs manual resolution (${DATE})" \
+            --head "conflict/ni-${TAG}" \
+            --base "main" \
+            --body-file "$TMPBODY" || \
+          gh pr list --head "conflict/ni-${TAG}" --base "main" --state open --json number --jq '.[0].number' \
+            | xargs -I{} gh pr edit {} \
+              --title "conflict: rebase onto ${TAG} needs manual resolution (${DATE})" \
+              --body-file "$TMPBODY"
+          rm -f "$TMPBODY"
+
+      - name: No new tags found
+        if: steps.find-tags.outputs.tags == ''
+        run: echo "No new upstream stable tags to process."
