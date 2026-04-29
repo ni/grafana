@@ -1,0 +1,269 @@
+import { screen, waitFor } from '@testing-library/react';
+import { useParams } from 'react-router-dom-v5-compat';
+import { type Props } from 'react-virtualized-auto-sizer';
+import { render } from 'test/test-utils';
+
+import { config, locationService } from '@grafana/runtime';
+<<<<<<<
+import { DashboardRoutes } from 'app/types/dashboard';
+
+import DashboardPageProxy, { type DashboardPageProxyProps } from './DashboardPageProxy';
+=======
+import { appEvents } from 'app/core/core';
+import {
+  HOME_DASHBOARD_CACHE_KEY,
+  getDashboardScenePageStateManager,
+} from 'app/features/dashboard-scene/pages/DashboardScenePageStateManager';
+import {
+  setupLoadDashboardMockReject,
+  setupLoadDashboardRuntimeErrorMock,
+} from 'app/features/dashboard-scene/utils/test-utils';
+import { DashboardDTO, DashboardRoutes } from 'app/types';
+import { NIRefreshDashboardEvent } from 'app/types/events';
+
+import { DashboardLoaderSrv, setDashboardLoaderSrv } from '../services/DashboardLoaderSrv';
+
+import DashboardPageProxy, { DashboardPageProxyProps } from './DashboardPageProxy';
+
+const mockRefreshTimeModel = jest.fn();
+
+jest.mock('../services/TimeSrv', () => ({
+  getTimeSrv: jest.fn(() => ({
+    refreshTimeModel: mockRefreshTimeModel,
+  })),
+}));
+
+const dashMock: DashboardDTO = {
+  dashboard: {
+    id: 1,
+    annotations: {
+      list: [],
+    },
+    uid: 'uid',
+    title: 'title',
+    panels: [],
+    version: 1,
+    schemaVersion: 1,
+  },
+  meta: {
+    canEdit: false,
+  },
+};
+
+const homeMock = {
+  ...dashMock,
+  dashboard: {
+    ...dashMock.dashboard,
+    uid: '',
+    title: 'Home',
+  },
+};
+
+const homeMockEditable = {
+  ...homeMock,
+  meta: {
+    ...homeMock.meta,
+    canEdit: true,
+  },
+};
+
+const dashMockEditable = {
+  ...dashMock,
+  meta: {
+    ...dashMock.meta,
+    canEdit: true,
+  },
+};
+>>>>>>>
+
+jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
+  getDataSourceSrv: jest.fn().mockReturnValue({
+    getInstanceSettings: () => {
+      return { name: 'Grafana' };
+    },
+    get: jest.fn().mockResolvedValue({}),
+  }),
+  useChromeHeaderHeight: jest.fn(),
+  getBackendSrv: () => {
+    return {
+      get: jest.fn().mockResolvedValue({ dashboard: {}, meta: { url: '' } }),
+    };
+  },
+}));
+
+jest.mock('react-virtualized-auto-sizer', () => {
+  return ({ children }: Props) =>
+    children({
+      height: 1,
+      scaledHeight: 1,
+      scaledWidth: 1,
+      width: 1,
+    });
+});
+
+jest.mock('react-router-dom-v5-compat', () => ({
+  ...jest.requireActual('react-router-dom-v5-compat'),
+  useParams: jest.fn().mockReturnValue({}),
+}));
+
+function setup(props: Partial<DashboardPageProxyProps> & { uid?: string }) {
+  (useParams as jest.Mock).mockReturnValue({ uid: props.uid });
+  return render(
+    <DashboardPageProxy
+      location={locationService.getLocation()}
+      queryParams={{}}
+      route={{ routeName: DashboardRoutes.Home, component: () => null, path: '/' }}
+      {...props}
+    />
+  );
+}
+
+describe('DashboardPageProxy', () => {
+  describe('when dashboardScene feature toggle is enabled (default)', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      config.featureToggles.kubernetesDashboards = false;
+    });
+
+    it('should render DashboardScenePage for home route', async () => {
+      setup({
+        route: { routeName: DashboardRoutes.Home, component: () => null, path: '/' },
+      });
+
+      await waitFor(() => {
+        expect(screen.queryAllByTestId('dashboard-scene-page')).toHaveLength(1);
+      });
+    });
+
+    it('should render DashboardScenePage for normal route with uid', async () => {
+      setup({
+        route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
+        uid: 'abc-def',
+      });
+
+      await waitFor(() => {
+        expect(screen.queryAllByTestId('dashboard-scene-page')).toHaveLength(1);
+      });
+    });
+
+    it('should render legacy DashboardPage when forceOld query param is set', async () => {
+      setup({
+        route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
+        uid: 'abc-def',
+        queryParams: { scenes: false },
+      });
+
+      await waitFor(() => {
+        expect(screen.queryAllByTestId('dashboard-scene-page')).toHaveLength(0);
+      });
+    });
+  });
+
+  describe('NIRefreshDashboardEvent', () => {
+    beforeEach(() => {
+      mockRefreshTimeModel.mockClear();
+      getDashboardScenePageStateManager().setDashboardCache('test-uid', dashMock);
+    });
+
+    describe('when dashboard scenes is disabled', () => {
+      beforeEach(() => {
+        config.featureToggles.dashboardSceneForViewers = false;
+      });
+
+      it('should refresh the dashboard when NIRefreshDashboardEvent is emitted', async () => {
+        act(() => {
+          setup({
+            route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
+            uid: 'test-uid',
+          });
+        });
+
+        await waitFor(() => {
+          expect(screen.queryByTestId('dashboard-scene-page')).not.toBeInTheDocument();
+        });
+
+        act(() => {
+          appEvents.publish(new NIRefreshDashboardEvent());
+        });
+
+        await waitFor(() => {
+          expect(mockRefreshTimeModel).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      it('should refresh the dashboard multiple times when event is emitted multiple times', async () => {
+        act(() => {
+          setup({
+            route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
+            uid: 'test-uid',
+          });
+        });
+
+        await waitFor(() => {
+          expect(screen.queryByTestId('dashboard-scene-page')).not.toBeInTheDocument();
+        });
+
+        act(() => {
+          appEvents.publish(new NIRefreshDashboardEvent());
+          appEvents.publish(new NIRefreshDashboardEvent());
+          appEvents.publish(new NIRefreshDashboardEvent());
+        });
+
+        await waitFor(() => {
+          expect(mockRefreshTimeModel).toHaveBeenCalledTimes(3);
+        });
+      });
+    });
+
+    describe('when dashboard scenes is enabled', () => {
+      beforeEach(() => {
+        config.featureToggles.dashboardSceneForViewers = true;
+      });
+
+      it('should refresh dashboard when NIRefreshDashboardEvent is emitted', async () => {
+        act(() => {
+          setup({
+            route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
+            uid: 'test-uid',
+          });
+        });
+
+        await waitFor(() => {
+          expect(screen.queryByTestId('dashboard-scene-page')).toBeInTheDocument();
+        });
+
+        act(() => {
+          appEvents.publish(new NIRefreshDashboardEvent());
+        });
+
+        await waitFor(() => {
+          expect(mockRefreshTimeModel).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      it('should refresh the dashboard multiple times when event is emitted multiple times', async () => {
+        act(() => {
+          setup({
+            route: { routeName: DashboardRoutes.Normal, component: () => null, path: '/' },
+            uid: 'test-uid',
+          });
+        });
+
+        await waitFor(() => {
+          expect(screen.queryByTestId('dashboard-scene-page')).toBeInTheDocument();
+        });
+
+        act(() => {
+          appEvents.publish(new NIRefreshDashboardEvent());
+          appEvents.publish(new NIRefreshDashboardEvent());
+          appEvents.publish(new NIRefreshDashboardEvent());
+        });
+
+        await waitFor(() => {
+          expect(mockRefreshTimeModel).toHaveBeenCalledTimes(3);
+        });
+      });
+    });
+  });
+});
