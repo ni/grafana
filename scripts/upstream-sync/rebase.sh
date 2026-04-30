@@ -24,17 +24,17 @@ TAG="${1:?Usage: $0 <upstream-tag>}"
 git config rerere.enabled true
 git config rerere.autoupdate true
 
-# Find the boundary between upstream history and NI-specific commits.
-# CONTRIBUTING_NI.md is added only in the NI fork. The parent of the commit
-# that first introduced it is the last pure-upstream commit in origin/main —
-# everything after it is an NI-specific commit to replay.
 # NI_BRANCH: the branch whose tip is the current NI head. Defaults to
 # origin/main but can be overridden for testing (e.g. origin/grafana-upgrade-v12).
 NI_BRANCH="${NI_BRANCH:-origin/main}"
 
-NI_BASE=$(git log --format="%P" --diff-filter=A -- CONTRIBUTING_NI.md "$NI_BRANCH" | tail -1)
+# Find the boundary between upstream history and NI-specific commits.
+# merge-base gives the most recent common ancestor of NI_BRANCH and TAG —
+# the last upstream commit both histories share. Everything after it on
+# NI_BRANCH is an NI-specific commit to replay onto TAG.
+NI_BASE=$(git merge-base "$NI_BRANCH" "$TAG")
 if [ -z "$NI_BASE" ]; then
-  echo "Error: could not determine NI fork start (CONTRIBUTING_NI.md not found in history of $NI_BRANCH)"
+  echo "Error: could not determine NI fork start (no common ancestor between $NI_BRANCH and $TAG)"
   exit 1
 fi
 
@@ -44,7 +44,8 @@ git checkout -B "conflict/ni-$TAG" "$NI_BRANCH"
 # git rebase exits 1 on any conflict, even when rerere has staged all resolutions.
 # Loop: if rerere resolved everything → git rebase --continue; else exit 1 so
 # CI can push the conflict branch for manual resolution.
-MAX_ITERS=100
+NI_COMMIT_COUNT=$(git rev-list --count "$NI_BASE".."$NI_BRANCH")
+MAX_ITERS=$NI_COMMIT_COUNT
 ITERS=0
 REBASE_STATUS=0
 

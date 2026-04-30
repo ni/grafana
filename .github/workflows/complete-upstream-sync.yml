@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
-  actions: write
 
 jobs:
   complete-rebase:
@@ -47,7 +45,7 @@ jobs:
             chmod +x scripts/upstream-sync/*.sh
           fi
 
-      - name: Create ni tag and close conflict PR
+      - name: Create ni tag and clean up conflict branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -69,20 +67,18 @@ jobs:
 
           bash scripts/upstream-sync/finalize.sh "$TAG"
 
-          PR_NUMBER=$(gh pr list \
-            --head "$BRANCH" \
-            --base "main" \
-            --state open \
-            --json number \
-            --jq '.[0].number' 2>/dev/null || echo "")
+          git push origin --delete "$BRANCH" || true
 
-          if [ -n "$PR_NUMBER" ]; then
-            gh pr close "$PR_NUMBER" \
-              --comment "ni-${TAG} created by CI. This branch will be deleted." \
-              --delete-branch || true
-          else
-            git push origin --delete "$BRANCH" || true
-          fi
+          echo "## ✅ ni-${TAG} created" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Tag \`ni-${TAG}\` has been pushed and branch \`${BRANCH}\` deleted." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Next step:** to promote, reset \`main\` to this tag:" >> "$GITHUB_STEP_SUMMARY"
+          echo '```sh' >> "$GITHUB_STEP_SUMMARY"
+          echo "git fetch origin --tags" >> "$GITHUB_STEP_SUMMARY"
+          echo "git checkout main && git reset --hard ni-${TAG}" >> "$GITHUB_STEP_SUMMARY"
+          echo "git push origin main --force" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Save rerere cache
         if: always()
