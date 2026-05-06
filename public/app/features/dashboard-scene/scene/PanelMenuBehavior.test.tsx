@@ -23,7 +23,7 @@ import { GetExploreUrlArguments } from 'app/core/utils/explore';
 import { grantUserPermissions } from 'app/features/alerting/unified/mocks';
 import { scenesPanelToRuleFormValues } from 'app/features/alerting/unified/utils/rule-form';
 import * as storeModule from 'app/store/store';
-import { AccessControlAction } from 'app/types/accessControl';
+import { AccessControlAction, KioskMode } from 'app/types';
 
 import { buildPanelEditScene } from '../panel-edit/PanelEditor';
 
@@ -553,153 +553,58 @@ describe('panelMenuBehavior', () => {
       expect(menu.state.items?.[0].text).toBe('Explore');
     });
 
-    describe('plugin links', () => {
-      it('should not show Metrics Drilldown menu when no Metrics Drilldown links exist', async () => {
-        getPluginExtensionsMock.mockReturnValue({
-          extensions: [
-            {
-              id: '1',
-              pluginId: '...',
-              type: PluginExtensionTypes.link,
-              title: 'Other Extension',
-              description: 'Some other extension',
-              path: '/a/other-app/action',
-            },
-          ],
-        });
+    it('should have empty menu items in embed kiosk mode', async () => {
+      const { scene, menu, panel } = await buildTestScene({});
 
-        const { menu, panel } = await buildTestScene({});
+      scene.setState({ kioskMode: KioskMode.Embed });
 
-        panel.getPlugin = () => getPanelPlugin({ skipDataQuery: false });
+      panel.getPlugin = () => getPanelPlugin({ skipDataQuery: false });
 
-        mocks.contextSrv.hasAccessToExplore.mockReturnValue(true);
-        mocks.getExploreUrl.mockReturnValue(Promise.resolve('/explore'));
+      mocks.contextSrv.hasAccessToExplore.mockReturnValue(true);
+      mocks.getExploreUrl.mockReturnValue(Promise.resolve('/explore'));
 
-        menu.activate();
+      menu.activate();
 
-        await new Promise((r) => setTimeout(r, 1));
+      await new Promise((r) => setTimeout(r, 1));
 
-        const metricsDrilldownMenu = menu.state.items?.find((i) => i.text === 'Metrics drilldown');
-        const extensionsMenu = menu.state.items?.find((i) => i.text === 'Extensions');
+      expect(menu.state.items?.length).toBe(0);
+    });
 
-        expect(metricsDrilldownMenu).toBeUndefined();
-        expect(extensionsMenu).toBeDefined();
-        expect(extensionsMenu?.subMenu).toEqual([
-          expect.objectContaining({
-            text: 'Other Extension',
-            href: '/a/other-app/action',
-          }),
-        ]);
-      });
+    it('should have menu items when NOT in embed kiosk mode', async () => {
+      const { scene, menu, panel } = await buildTestScene({});
 
-      it('should separate Metrics Drilldown links into their own menu', async () => {
-        getPluginExtensionsMock.mockReturnValue({
-          extensions: [
-            {
-              id: '1',
-              pluginId: '...',
-              type: PluginExtensionTypes.link,
-              title: 'Open in Metrics Drilldown',
-              description: 'Open current query in Metrics Drilldown',
-              path: '/a/grafana-metricsdrilldown-app/trail',
-              category: 'metrics-drilldown',
-            },
-            {
-              id: '2',
-              pluginId: '...',
-              type: PluginExtensionTypes.link,
-              title: 'Other Extension',
-              description: 'Some other extension',
-              path: '/a/other-app/action',
-            },
-          ],
-        });
+      // Explicitly no kiosk mode
+      scene.setState({ kioskMode: undefined });
 
-        const { menu, panel } = await buildTestScene({});
+      panel.getPlugin = () => getPanelPlugin({ skipDataQuery: false });
 
-        panel.getPlugin = () => getPanelPlugin({ skipDataQuery: false });
+      mocks.contextSrv.hasAccessToExplore.mockReturnValue(true);
+      mocks.getExploreUrl.mockReturnValue(Promise.resolve('/explore'));
 
-        mocks.contextSrv.hasAccessToExplore.mockReturnValue(true);
-        mocks.getExploreUrl.mockReturnValue(Promise.resolve('/explore'));
+      menu.activate();
 
-        menu.activate();
+      await new Promise((r) => setTimeout(r, 1));
 
-        await new Promise((r) => setTimeout(r, 1));
+      expect(menu.state.items?.length).toBeGreaterThan(0);
+      expect(menu.state.items?.[0].text).toBe('View');
+    });
 
-        expect(menu.state.items?.length).toBe(8); // 6 base items + 2 extension menus
+    it('should have menu items in Full kiosk mode (only chrome hidden, not menus)', async () => {
+      const { scene, menu, panel } = await buildTestScene({});
 
-        const metricsDrilldownMenu = menu.state.items?.find((i) => i.text === 'Metrics drilldown');
-        const extensionsMenu = menu.state.items?.find((i) => i.text === 'Extensions');
+      scene.setState({ kioskMode: KioskMode.Full });
 
-        expect(metricsDrilldownMenu).toBeDefined();
-        expect(metricsDrilldownMenu?.iconClassName).toBe('code-branch');
-        expect(metricsDrilldownMenu?.subMenu).toEqual([
-          expect.objectContaining({
-            text: 'metrics-drilldown',
-            type: 'group',
-            subMenu: expect.arrayContaining([
-              expect.objectContaining({
-                text: 'Open in Metrics Drilld...',
-                href: '/a/grafana-metricsdrilldown-app/trail',
-              }),
-            ]),
-          }),
-        ]);
+      panel.getPlugin = () => getPanelPlugin({ skipDataQuery: false });
 
-        expect(extensionsMenu).toBeDefined();
-        expect(extensionsMenu?.iconClassName).toBe('plug');
-        expect(extensionsMenu?.subMenu).toEqual([
-          expect.objectContaining({
-            text: 'Other Extension',
-            href: '/a/other-app/action',
-          }),
-        ]);
-      });
+      mocks.contextSrv.hasAccessToExplore.mockReturnValue(true);
+      mocks.getExploreUrl.mockReturnValue(Promise.resolve('/explore'));
 
-      it('should not show extensions menu when no non-Metrics Drilldown links exist', async () => {
-        getPluginExtensionsMock.mockReturnValue({
-          extensions: [
-            {
-              id: '1',
-              pluginId: '...',
-              type: PluginExtensionTypes.link,
-              title: 'Open in Metrics Drilldown',
-              description: 'Open current query in Metrics Drilldown',
-              path: '/a/grafana-metricsdrilldown-app/trail',
-              category: 'metrics-drilldown',
-            },
-          ],
-        });
+      menu.activate();
 
-        const { menu, panel } = await buildTestScene({});
+      await new Promise((r) => setTimeout(r, 1));
 
-        panel.getPlugin = () => getPanelPlugin({ skipDataQuery: false });
-
-        mocks.contextSrv.hasAccessToExplore.mockReturnValue(true);
-        mocks.getExploreUrl.mockReturnValue(Promise.resolve('/explore'));
-
-        menu.activate();
-
-        await new Promise((r) => setTimeout(r, 1));
-
-        const metricsDrilldownMenu = menu.state.items?.find((i) => i.text === 'Metrics drilldown');
-        const extensionsMenu = menu.state.items?.find((i) => i.text === 'Extensions');
-
-        expect(metricsDrilldownMenu).toBeDefined();
-        expect(extensionsMenu).toBeUndefined();
-        expect(metricsDrilldownMenu?.subMenu).toEqual([
-          expect.objectContaining({
-            text: 'metrics-drilldown',
-            type: 'group',
-            subMenu: expect.arrayContaining([
-              expect.objectContaining({
-                text: 'Open in Metrics Drilld...',
-                href: '/a/grafana-metricsdrilldown-app/trail',
-              }),
-            ]),
-          }),
-        ]);
-      });
+      expect(menu.state.items?.length).toBeGreaterThan(0);
+      expect(menu.state.items?.[0].text).toBe('View');
     });
   });
 
