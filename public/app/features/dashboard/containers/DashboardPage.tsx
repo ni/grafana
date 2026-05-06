@@ -114,6 +114,11 @@ const getStyles = (theme: GrafanaTheme2) => ({
       display: 'none',
     },
   }),
+  embedKiosk: css({
+    '[data-testid^="data-testid Panel menu"], [data-testid="panel-menu-button"]': {
+      display: 'none !important',
+    },
+  }),
 });
 
 export class UnthemedDashboardPage extends PureComponent<Props, State> {
@@ -367,10 +372,11 @@ export class UnthemedDashboardPage extends PureComponent<Props, State> {
     const inspectPanel = this.getInspectPanel();
     const showSubMenu = !editPanel && !kioskMode && !this.props.queryParams.editview && dashboard.isSubMenuVisible();
 
-    const showToolbar = kioskMode !== KioskMode.Full && kioskMode !== KioskMode.Embed && !queryParams.editview && !initError;
+    const showToolbar = kioskMode !== KioskMode.Full && !queryParams.editview && !initError;
 
     const pageClassName = cx({
       [styles.fullScreenPanel]: Boolean(viewPanel),
+      [styles.embedKiosk]: kioskMode === KioskMode.Embed,
       'page-hidden': Boolean(queryParams.editview || editPanel),
     });
 

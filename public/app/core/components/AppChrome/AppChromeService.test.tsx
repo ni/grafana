@@ -66,10 +66,10 @@ describe('AppChromeService', () => {
       expect(chromeService.state.getValue().kioskMode).toBeNull();
     });
 
-    it('should set chromeless to true for Embed kiosk mode', () => {
+    it('should not set chromeless for Embed kiosk mode', () => {
       const chromeService = new AppChromeService();
       chromeService.setKioskModeFromUrl('embed');
-      expect(chromeService.state.getValue().chromeless).toBe(true);
+      expect(chromeService.state.getValue().chromeless).toBe(false);
     });
 
     it('should not set chromeless for null/undefined kiosk mode', () => {

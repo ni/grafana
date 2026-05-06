@@ -3,7 +3,7 @@ import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
 import { IconButton, Stack, useTheme2 } from '@grafana/ui';
-import { useGrafana } from 'app/core/context/GrafanaContext';
+import { t } from 'app/core/internationalization';
 
 import { getChromeHeaderLevelHeight } from '../TopBar/useChromeHeaderHeight';
 
@@ -19,8 +19,6 @@ export const MEGA_MENU_HEADER_TOGGLE_ID = 'mega-menu-header-toggle';
 export function MegaMenuHeader({ handleMegaMenu, handleDockedMenu, onClose }: Props) {
   const theme = useTheme2();
   const styles = getStyles(theme);
-  const { chrome } = useGrafana();
-  const state = chrome.useState();
 
   return (
     <div className={styles.header}>

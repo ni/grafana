@@ -60,6 +60,21 @@ export class AppChromeService {
     returnToPrevious: this.returnToPreviousData,
   });
 
+  public headerHeightObservable = this.state
+    .pipe(
+      map(({ actions, chromeless, kioskMode }) => {
+        if (kioskMode === KioskMode.Full || chromeless) {
+          return 0;
+        } else if (kioskMode === KioskMode.Embed) {
+          return actions ? TOP_BAR_LEVEL_HEIGHT : 0;
+        } else {
+          return actions ? TOP_BAR_LEVEL_HEIGHT : 0; // NI fork: adjusted height to account for removed navigation bar
+        }
+      })
+    )
+    // only emit if the state has actually changed
+    .pipe(distinctUntilChanged());
+
   public setMatchedRoute(route: RouteDescriptor) {
     if (this.currentRoute !== route) {
       this.currentRoute = route;
@@ -87,7 +102,7 @@ export class AppChromeService {
 
     // KioskMode overrides chromeless state
     newState.chromeless =
-      newState.kioskMode === KioskMode.Full || newState.kioskMode === KioskMode.Embed || this.currentRoute?.chromeless;
+      newState.kioskMode === KioskMode.Full || !!this.currentRoute?.chromeless;
 
     if (!this.ignoreStateUpdate(newState, current)) {
       config.featureToggles.unifiedHistory &&

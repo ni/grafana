@@ -11,7 +11,8 @@ import { useGrafana } from 'app/core/context/GrafanaContext';
 import { useMediaQueryMinWidth } from 'app/core/hooks/useMediaQueryMinWidth';
 import store from 'app/core/store';
 import { CommandPalette } from 'app/features/commandPalette/CommandPalette';
-import { ScopesDashboards } from 'app/features/scopes/dashboards/ScopesDashboards';
+import { ScopesDashboards, useScopesDashboardsState } from 'app/features/scopes';
+import { KioskMode } from 'app/types';
 
 import { AppChromeMenu } from './AppChromeMenu';
 import { AppChromeService, DOCKED_LOCAL_STORAGE_KEY } from './AppChromeService';
@@ -97,20 +98,19 @@ export function AppChrome({ children }: Props) {
           <LinkButton className={styles.skipLink} href="#pageContent">
             <Trans i18nKey="app-chrome.skip-content-button">Skip to main content</Trans>
           </LinkButton>
-          {menuDockedAndOpen && (
+          {menuDockedAndOpen && state.kioskMode !== KioskMode.Embed && (
             <MegaMenu className={styles.dockedMegaMenu} onClose={() => chrome.setMegaMenuOpen(false)} />
           )}
           <header className={cx(styles.topNav, menuDockedAndOpen && styles.topNavMenuDocked)}>
-            <SingleTopBar
-              sectionNav={state.sectionNav.node}
-              pageNav={state.pageNav}
-              onToggleMegaMenu={handleMegaMenu}
-              onToggleKioskMode={chrome.onToggleKioskMode}
-              actions={state.actions}
-              breadcrumbActions={state.breadcrumbActions}
-              scopes={scopes}
-              showToolbarLevel={headerLevels === 2}
-            />
+            {state.kioskMode !== KioskMode.Embed && (
+              <SingleTopBar
+                sectionNav={state.sectionNav.node}
+                pageNav={state.pageNav}
+                onToggleMegaMenu={handleMegaMenu}
+                onToggleKioskMode={chrome.onToggleKioskMode}
+              />
+            )}
+            {state.actions && <SingleTopBarActions>{state.actions}</SingleTopBarActions>}
           </header>
         </>
       )}
@@ -153,8 +153,8 @@ export function AppChrome({ children }: Props) {
           )}
         </div>
       </div>
-      {!state.chromeless && !state.megaMenuDocked && <AppChromeMenu />}
-      {!state.chromeless && <CommandPalette />}
+      {!state.chromeless && !state.megaMenuDocked && state.kioskMode !== KioskMode.Embed && <AppChromeMenu />}
+      {!state.chromeless && state.kioskMode !== KioskMode.Embed && <CommandPalette />}
       {shouldShowReturnToPrevious && state.returnToPrevious && (
         <ReturnToPrevious href={state.returnToPrevious.href} title={state.returnToPrevious.title} />
       )}
