@@ -1,0 +1,97 @@
+name: Complete upstream sync after conflict resolution
+
+on:
+  push:
+    branches:
+      - conflict/ni-*
+
+permissions:
+  contents: write
+
+jobs:
+  complete-rebase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout NI fork
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config rerere.enabled true
+
+      - name: Restore rerere cache
+        run: |
+          git fetch origin rerere-cache 2>/dev/null || true
+          if git rev-parse --verify origin/rerere-cache &>/dev/null; then
+            mkdir -p .git/rr-cache
+            git archive origin/rerere-cache rr-cache 2>/dev/null \
+              | tar -x --strip-components=1 -C .git/rr-cache/ 2>/dev/null || true
+            echo "Rerere cache restored: $(ls .git/rr-cache | wc -l) entries"
+          fi
+
+      - name: Fetch upstream-sync scripts
+        run: |
+          # The conflict/ni-* branch is rebased from main which does not yet
+          # have scripts/upstream-sync/. Fetch them from the test branch.
+          # Remove this step once the scripts are merged to main.
+          if [ ! -f scripts/upstream-sync/finalize.sh ]; then
+            git fetch origin users/saradei/3779959
+            git checkout FETCH_HEAD -- scripts/upstream-sync/
+            chmod +x scripts/upstream-sync/*.sh
+          fi
+
+      - name: Create ni tag and clean up conflict branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          TAG="${BRANCH#conflict/ni-}"
+
+          if git tag | grep -q "^ni-${TAG}$"; then
+            echo "ni-$TAG already exists, nothing to do."
+            exit 0
+          fi
+
+          # Fetch only the specific upstream tag needed for the ancestry check
+          git remote add upstream https://github.com/grafana/grafana.git
+          git fetch upstream "refs/tags/${TAG}:refs/tags/${TAG}" --no-recurse-submodules
+
+          # Verify the branch is actually rebased onto the upstream tag, not just pushed as-is
+          git merge-base --is-ancestor "$TAG" HEAD \
+            || { echo "HEAD is not rebased onto $TAG. Complete the rebase before pushing."; exit 1; }
+
+          bash scripts/upstream-sync/finalize.sh "$TAG"
+
+          git push origin --delete "$BRANCH" || true
+
+          echo "## ✅ ni-${TAG} created" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Tag \`ni-${TAG}\` has been pushed and branch \`${BRANCH}\` deleted." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Next step:** to promote, reset \`main\` to this tag:" >> "$GITHUB_STEP_SUMMARY"
+          echo '```sh' >> "$GITHUB_STEP_SUMMARY"
+          echo "git fetch origin --tags" >> "$GITHUB_STEP_SUMMARY"
+          echo "git checkout main && git reset --hard ni-${TAG}" >> "$GITHUB_STEP_SUMMARY"
+          echo "git push origin main --force" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Save rerere cache
+        if: always()
+        run: |
+          if [ ! -d .git/rr-cache ] || [ -z "$(ls -A .git/rr-cache)" ]; then
+            echo "No rerere cache to save."
+            exit 0
+          fi
+          git fetch origin rerere-cache
+          git checkout origin/rerere-cache -B rerere-cache
+          mkdir -p rr-cache
+          cp -r .git/rr-cache/. rr-cache/
+          git add rr-cache
+          git diff --quiet --cached || git commit -m "chore: update rerere cache from manual conflict resolution"
+          git push origin rerere-cache
+          git checkout -
