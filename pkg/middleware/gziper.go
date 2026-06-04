@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"compress/gzip"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/grafana/grafana/pkg/web"
 )
@@ -53,6 +55,20 @@ var gzipIgnoredPaths = []matcher{
 	substr("/resources"),
 }
 
+var gzipWriterPool = sync.Pool{
+	New: func() interface{} {
+		gz, _ := gzip.NewWriterLevel(io.Discard, gzip.DefaultCompression)
+		// compress/gzip lazily initializes the internal flate.compressor on the
+		// first Write() call. Pre-warm it here so that after Reset(), gzip.Write()
+		// finds a non-nil compressor and calls compressor.Reset() (cheap) instead
+		// of flate.NewWriter() (allocates ~320 KB). Without this, every writer
+		// created after a GC pool drain triggers flate.NewWriter during the request.
+		gz.Flush()           // triggers compressor init via internal Write(nil)
+		gz.Reset(io.Discard) // compressor is preserved through Reset; stream state cleared
+		return gz
+	},
+}
+
 func Gziper() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
@@ -70,13 +86,24 @@ func Gziper() func(http.Handler) http.Handler {
 				return
 			}
 
-			grw := &gzipResponseWriter{gzip.NewWriter(rw), rw.(web.ResponseWriter)}
+			gz := gzipWriterPool.Get().(*gzip.Writer)
+			gz.Reset(rw)
+			grw := &gzipResponseWriter{gz, rw.(web.ResponseWriter)}
 			grw.Header().Set("Content-Encoding", "gzip")
 			grw.Header().Set("Vary", "Accept-Encoding")
 
+			defer func() {
+				// We can't really handle close errors at this point and we can't report them to the caller.
+				// Reset clears z.err on next use, so putting a closed/errored writer back is safe.
+				_ = gz.Close()
+				// Reset to io.Discard before returning to pool so the pool does not
+				// hold a reference to rw (and its backing connection buffers) longer
+				// than the lifetime of this request.
+				gz.Reset(io.Discard)
+				gzipWriterPool.Put(gz)
+			}()
+
 			next.ServeHTTP(grw, req)
-			// We can't really handle close errors at this point and we can't report them to the caller
-			_ = grw.w.Close()
 		})
 	}
 }
