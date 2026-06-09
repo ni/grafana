@@ -101,8 +101,7 @@ export class AppChromeService {
     Object.assign(newState, update);
 
     // KioskMode overrides chromeless state
-    newState.chromeless =
-      newState.kioskMode === KioskMode.Full || !!this.currentRoute?.chromeless;
+    newState.chromeless = newState.kioskMode === KioskMode.Full || this.currentRoute?.chromeless;
 
     if (!this.ignoreStateUpdate(newState, current)) {
       config.featureToggles.unifiedHistory &&
