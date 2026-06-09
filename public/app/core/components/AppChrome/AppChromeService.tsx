@@ -65,8 +65,6 @@ export class AppChromeService {
       map(({ actions, chromeless, kioskMode }) => {
         if (kioskMode === KioskMode.Full || chromeless) {
           return 0;
-        } else if (kioskMode === KioskMode.Embed) {
-          return actions ? TOP_BAR_LEVEL_HEIGHT : 0;
         } else {
           return actions ? TOP_BAR_LEVEL_HEIGHT : 0; // NI fork: adjusted height to account for removed navigation bar
         }
