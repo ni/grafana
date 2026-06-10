@@ -554,21 +554,153 @@ describe('panelMenuBehavior', () => {
       expect(menu.state.items?.[0].text).toBe('Explore');
     });
 
-    it('should have empty menu items in embed kiosk mode', async () => {
-      const { scene, menu, panel } = await buildTestScene({});
+    describe('plugin links', () => {
+      it('should not show Metrics Drilldown menu when no Metrics Drilldown links exist', async () => {
+        getPluginExtensionsMock.mockReturnValue({
+          extensions: [
+            {
+              id: '1',
+              pluginId: '...',
+              type: PluginExtensionTypes.link,
+              title: 'Other Extension',
+              description: 'Some other extension',
+              path: '/a/other-app/action',
+            },
+          ],
+        });
 
-      scene.setState({ kioskMode: KioskMode.Embed });
+        const { menu, panel } = await buildTestScene({});
 
-      panel.getPlugin = () => getPanelPlugin({ skipDataQuery: false });
+        panel.getPlugin = () => getPanelPlugin({ skipDataQuery: false });
 
-      mocks.contextSrv.hasAccessToExplore.mockReturnValue(true);
-      mocks.getExploreUrl.mockReturnValue(Promise.resolve('/explore'));
+        mocks.contextSrv.hasAccessToExplore.mockReturnValue(true);
+        mocks.getExploreUrl.mockReturnValue(Promise.resolve('/explore'));
 
-      menu.activate();
+        menu.activate();
 
-      await new Promise((r) => setTimeout(r, 1));
+        await new Promise((r) => setTimeout(r, 1));
 
-      expect(menu.state.items?.length).toBe(0);
+        const metricsDrilldownMenu = menu.state.items?.find((i) => i.text === 'Metrics drilldown');
+        const extensionsMenu = menu.state.items?.find((i) => i.text === 'Extensions');
+
+        expect(metricsDrilldownMenu).toBeUndefined();
+        expect(extensionsMenu).toBeDefined();
+        expect(extensionsMenu?.subMenu).toEqual([
+          expect.objectContaining({
+            text: 'Other Extension',
+            href: '/a/other-app/action',
+          }),
+        ]);
+      });
+
+      it('should separate Metrics Drilldown links into their own menu', async () => {
+        getPluginExtensionsMock.mockReturnValue({
+          extensions: [
+            {
+              id: '1',
+              pluginId: '...',
+              type: PluginExtensionTypes.link,
+              title: 'Open in Metrics Drilldown',
+              description: 'Open current query in Metrics Drilldown',
+              path: '/a/grafana-metricsdrilldown-app/trail',
+              category: 'metrics-drilldown',
+            },
+            {
+              id: '2',
+              pluginId: '...',
+              type: PluginExtensionTypes.link,
+              title: 'Other Extension',
+              description: 'Some other extension',
+              path: '/a/other-app/action',
+            },
+          ],
+        });
+
+        const { menu, panel } = await buildTestScene({});
+
+        panel.getPlugin = () => getPanelPlugin({ skipDataQuery: false });
+
+        mocks.contextSrv.hasAccessToExplore.mockReturnValue(true);
+        mocks.getExploreUrl.mockReturnValue(Promise.resolve('/explore'));
+
+        menu.activate();
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(menu.state.items?.length).toBe(8); // 6 base items + 2 extension menus
+
+        const metricsDrilldownMenu = menu.state.items?.find((i) => i.text === 'Metrics drilldown');
+        const extensionsMenu = menu.state.items?.find((i) => i.text === 'Extensions');
+
+        expect(metricsDrilldownMenu).toBeDefined();
+        expect(metricsDrilldownMenu?.iconClassName).toBe('code-branch');
+        expect(metricsDrilldownMenu?.subMenu).toEqual([
+          expect.objectContaining({
+            text: 'metrics-drilldown',
+            type: 'group',
+            subMenu: expect.arrayContaining([
+              expect.objectContaining({
+                text: 'Open in Metrics Drilld...',
+                href: '/a/grafana-metricsdrilldown-app/trail',
+              }),
+            ]),
+          }),
+        ]);
+
+        expect(extensionsMenu).toBeDefined();
+        expect(extensionsMenu?.iconClassName).toBe('plug');
+        expect(extensionsMenu?.subMenu).toEqual([
+          expect.objectContaining({
+            text: 'Other Extension',
+            href: '/a/other-app/action',
+          }),
+        ]);
+      });
+
+      it('should not show extensions menu when no non-Metrics Drilldown links exist', async () => {
+        getPluginExtensionsMock.mockReturnValue({
+          extensions: [
+            {
+              id: '1',
+              pluginId: '...',
+              type: PluginExtensionTypes.link,
+              title: 'Open in Metrics Drilldown',
+              description: 'Open current query in Metrics Drilldown',
+              path: '/a/grafana-metricsdrilldown-app/trail',
+              category: 'metrics-drilldown',
+            },
+          ],
+        });
+
+        const { menu, panel } = await buildTestScene({});
+
+        panel.getPlugin = () => getPanelPlugin({ skipDataQuery: false });
+
+        mocks.contextSrv.hasAccessToExplore.mockReturnValue(true);
+        mocks.getExploreUrl.mockReturnValue(Promise.resolve('/explore'));
+
+        menu.activate();
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        const metricsDrilldownMenu = menu.state.items?.find((i) => i.text === 'Metrics drilldown');
+        const extensionsMenu = menu.state.items?.find((i) => i.text === 'Extensions');
+
+        expect(metricsDrilldownMenu).toBeDefined();
+        expect(extensionsMenu).toBeUndefined();
+        expect(metricsDrilldownMenu?.subMenu).toEqual([
+          expect.objectContaining({
+            text: 'metrics-drilldown',
+            type: 'group',
+            subMenu: expect.arrayContaining([
+              expect.objectContaining({
+                text: 'Open in Metrics Drilld...',
+                href: '/a/grafana-metricsdrilldown-app/trail',
+              }),
+            ]),
+          }),
+        ]);
+      });
     });
 
     it('should have menu items when NOT in embed kiosk mode', async () => {

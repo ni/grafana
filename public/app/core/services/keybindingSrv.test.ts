@@ -3,6 +3,18 @@ import { KioskMode } from 'app/types/dashboard';
 
 import { AppChromeService } from '../components/AppChrome/AppChromeService';
 
+// Mock heavy transitive imports that are not needed for these tests
+jest.mock('app/core/utils/explore', () => ({ getExploreUrl: jest.fn() }));
+jest.mock('app/features/dashboard/components/SaveDashboard/SaveDashboardDrawer', () => ({}));
+jest.mock('app/features/dashboard/components/ShareModal/ShareModal', () => ({}));
+jest.mock('app/features/dashboard/state/DashboardModel', () => ({}));
+jest.mock('../../features/dashboard/services/TimeSrv', () => ({ getTimeSrv: jest.fn() }));
+jest.mock('app/dev-utils', () => ({ toggleMockApiAndReload: jest.fn(), togglePseudoLocale: jest.fn() }));
+jest.mock('./theme', () => ({ toggleTheme: jest.fn() }));
+jest.mock('./mousetrap', () => ({ mousetrap: { bind: jest.fn(), unbind: jest.fn() } }));
+jest.mock('@grafana/assistant', () => ({ toggleAssistant: jest.fn(), isAssistantAvailable: jest.fn() }));
+jest.mock('../components/help/HelpModal', () => ({}));
+
 import { KeybindingSrv } from './keybindingSrv';
 
 describe('KeybindingSrv', () => {
