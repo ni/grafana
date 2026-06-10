@@ -61,18 +61,20 @@ export class AppChromeService {
     returnToPrevious: this.returnToPreviousData,
   });
 
-  public headerHeightObservable = this.state
-    .pipe(
-      map(({ actions, chromeless, kioskMode }) => {
-        if (kioskMode === KioskMode.Full || chromeless) {
-          return 0;
-        } else {
-          return actions ? getChromeHeaderLevelHeight() : 0; // NI fork: adjusted height to account for removed navigation bar
-        }
-      })
-    )
-    // only emit if the state has actually changed
-    .pipe(distinctUntilChanged());
+  public headerHeightObservable = this.state.pipe(
+    map(({ actions, breadcrumbActions, chromeless, kioskMode }) => {
+      if (kioskMode === KioskMode.Full || chromeless) {
+        return 0;
+      }
+
+      if (kioskMode === KioskMode.Embed) {
+        return actions || breadcrumbActions ? getChromeHeaderLevelHeight() : 0;
+      }
+
+      return actions ? getChromeHeaderLevelHeight() : 0; // NI fork: adjusted height to account for removed navigation bar
+    }),
+    distinctUntilChanged()
+  );
 
   public setMatchedRoute(route: RouteDescriptor) {
     if (this.currentRoute !== route) {
