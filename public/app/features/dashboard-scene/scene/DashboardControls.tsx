@@ -187,6 +187,7 @@ function DashboardControlsRenderer({ model }: SceneComponentProps<DashboardContr
           <DashboardDataLayerControls dashboard={dashboard} />
         </>
       )}
+      {editPanel && <PanelEditControls panelEditor={editPanel} />}
       {showDebugger && <SceneDebugger scene={model} key={'scene-debugger'} />}
     </div>
   );

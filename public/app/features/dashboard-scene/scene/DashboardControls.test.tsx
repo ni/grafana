@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react';
 
 import { selectors } from '@grafana/e2e-selectors';
-import { SceneDataLayerControls, SceneVariableSet, TextBoxVariable, VariableValueSelectors } from '@grafana/scenes';
+import { SceneVariableSet, ScopesVariable, TextBoxVariable } from '@grafana/scenes';
 import { KioskMode } from 'app/types/dashboard';
 
 import { DashboardControls, DashboardControlsState } from './DashboardControls';
@@ -141,9 +141,7 @@ describe('DashboardControls', () => {
     });
 
     it('should hide variables and links in embed kiosk mode', async () => {
-      const scene = buildTestScene({
-        variableControls: [new VariableValueSelectors({}), new SceneDataLayerControls()],
-      });
+      const scene = buildTestScene();
 
       // Set embed kiosk mode on the parent dashboard
       const dashboard = getDashboardForControls(scene);
@@ -160,9 +158,7 @@ describe('DashboardControls', () => {
     });
 
     it('should show variables and links when NOT in embed kiosk mode', async () => {
-      const scene = buildTestScene({
-        variableControls: [new VariableValueSelectors({}), new SceneDataLayerControls()],
-      });
+      const scene = buildTestScene();
 
       // No kiosk mode set (normal mode)
       const renderer = render(<scene.Component model={scene} />);
@@ -176,9 +172,7 @@ describe('DashboardControls', () => {
     });
 
     it('should show variables and links in Full kiosk mode (only chrome is hidden)', async () => {
-      const scene = buildTestScene({
-        variableControls: [new VariableValueSelectors({}), new SceneDataLayerControls()],
-      });
+      const scene = buildTestScene();
 
       // Set Full kiosk mode — this hides chrome only, not variables/links
       const dashboard = getDashboardForControls(scene);

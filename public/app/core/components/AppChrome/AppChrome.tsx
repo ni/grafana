@@ -47,7 +47,16 @@ export function AppChrome({ children }: Props) {
   );
 
   const headerLevels = useChromeHeaderLevels();
-  const headerHeight = (headerLevels - 1) * getChromeHeaderLevelHeight();
+  // In embed kiosk mode the only rendered header row (SingleTopBarActions) is fully
+  // visible when present, so content must clear the full header height.
+  // useChromeHeaderLevels already accounts for whether actions exist in embed mode
+  // (returns 1 if actions present, 0 otherwise).
+  // On normal pages the NI-fork breadcrumb row is hidden via display:none, so we
+  // subtract one level instead.
+  const isKioskEmbed = state.kioskMode === KioskMode.Embed;
+  const headerHeight = isKioskEmbed
+    ? headerLevels * getChromeHeaderLevelHeight()
+    : (headerLevels - 1) * getChromeHeaderLevelHeight();
   const styles = useStyles2(getStyles, headerHeight);
   const contentSizeStyles = useStyles2(getContentSizeStyles, extensionSidebarWidth);
   const dragStyles = useStyles2(getDragStyles);
