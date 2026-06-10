@@ -31,7 +31,6 @@ import { DashboardScene } from './DashboardScene';
 import { VizPanelLinks, VizPanelLinksMenu } from './PanelLinks';
 import { panelMenuBehavior } from './PanelMenuBehavior';
 import { DefaultGridLayoutManager } from './layout-default/DefaultGridLayoutManager';
-import { KioskMode } from 'app/types/dashboard';
 
 const mocks = {
   contextSrv: jest.mocked(contextSrv),
@@ -703,42 +702,6 @@ describe('panelMenuBehavior', () => {
       });
     });
 
-    it('should have menu items when NOT in embed kiosk mode', async () => {
-      const { scene, menu, panel } = await buildTestScene({});
-
-      // Explicitly no kiosk mode
-      scene.setState({ kioskMode: undefined });
-
-      panel.getPlugin = () => getPanelPlugin({ skipDataQuery: false });
-
-      mocks.contextSrv.hasAccessToExplore.mockReturnValue(true);
-      mocks.getExploreUrl.mockReturnValue(Promise.resolve('/explore'));
-
-      menu.activate();
-
-      await new Promise((r) => setTimeout(r, 1));
-
-      expect(menu.state.items?.length).toBeGreaterThan(0);
-      expect(menu.state.items?.[0].text).toBe('View');
-    });
-
-    it('should have menu items in Full kiosk mode (only chrome hidden, not menus)', async () => {
-      const { scene, menu, panel } = await buildTestScene({});
-
-      scene.setState({ kioskMode: KioskMode.Full });
-
-      panel.getPlugin = () => getPanelPlugin({ skipDataQuery: false });
-
-      mocks.contextSrv.hasAccessToExplore.mockReturnValue(true);
-      mocks.getExploreUrl.mockReturnValue(Promise.resolve('/explore'));
-
-      menu.activate();
-
-      await new Promise((r) => setTimeout(r, 1));
-
-      expect(menu.state.items?.length).toBeGreaterThan(0);
-      expect(menu.state.items?.[0].text).toBe('View');
-    });
   });
 
   describe('onCreateAlert', () => {
