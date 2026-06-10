@@ -1,5 +1,5 @@
 import { useObservable } from 'react-use';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, map } from 'rxjs';
 
 import { AppEvents, NavModel, NavModelItem, PageLayoutType, UrlQueryValue } from '@grafana/data';
 import { t } from '@grafana/i18n';
@@ -14,6 +14,7 @@ import { buildBreadcrumbs } from '../Breadcrumbs/utils';
 
 import { logDuplicateUnifiedHistoryEntryEvent } from './History/eventsTracking';
 import { ReturnToPreviousProps } from './ReturnToPrevious/ReturnToPrevious';
+import { getChromeHeaderLevelHeight } from './TopBar/useChromeHeaderHeight';
 import { HistoryEntry } from './types';
 
 export interface AppChromeState {
@@ -66,7 +67,7 @@ export class AppChromeService {
         if (kioskMode === KioskMode.Full || chromeless) {
           return 0;
         } else {
-          return actions ? TOP_BAR_LEVEL_HEIGHT : 0; // NI fork: adjusted height to account for removed navigation bar
+          return actions ? getChromeHeaderLevelHeight() : 0; // NI fork: adjusted height to account for removed navigation bar
         }
       })
     )

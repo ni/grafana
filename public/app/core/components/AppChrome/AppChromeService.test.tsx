@@ -1,4 +1,4 @@
-import { KioskMode } from 'app/types';
+import { KioskMode } from 'app/types/dashboard';
 
 import { AppChromeService } from './AppChromeService';
 

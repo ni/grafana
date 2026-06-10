@@ -11,8 +11,8 @@ import { useGrafana } from 'app/core/context/GrafanaContext';
 import { useMediaQueryMinWidth } from 'app/core/hooks/useMediaQueryMinWidth';
 import store from 'app/core/store';
 import { CommandPalette } from 'app/features/commandPalette/CommandPalette';
-import { ScopesDashboards, useScopesDashboardsState } from 'app/features/scopes';
-import { KioskMode } from 'app/types';
+import { ScopesDashboards } from 'app/features/scopes/dashboards/ScopesDashboards';
+import { KioskMode } from 'app/types/dashboard';
 
 import { AppChromeMenu } from './AppChromeMenu';
 import { AppChromeService, DOCKED_LOCAL_STORAGE_KEY } from './AppChromeService';
@@ -26,6 +26,7 @@ import { MegaMenu, MENU_WIDTH } from './MegaMenu/MegaMenu';
 import { useMegaMenuFocusHelper } from './MegaMenu/utils';
 import { ReturnToPrevious } from './ReturnToPrevious/ReturnToPrevious';
 import { SingleTopBar } from './TopBar/SingleTopBar';
+import { SingleTopBarActions } from './TopBar/SingleTopBarActions';
 import { getChromeHeaderLevelHeight, useChromeHeaderLevels } from './TopBar/useChromeHeaderHeight';
 
 export interface Props extends PropsWithChildren<{}> {}
@@ -108,9 +109,19 @@ export function AppChrome({ children }: Props) {
                 pageNav={state.pageNav}
                 onToggleMegaMenu={handleMegaMenu}
                 onToggleKioskMode={chrome.onToggleKioskMode}
+                actions={state.actions}
+                breadcrumbActions={state.breadcrumbActions}
+                scopes={scopes}
+                showToolbarLevel={headerLevels === 2}
               />
             )}
-            {state.actions && <SingleTopBarActions>{state.actions}</SingleTopBarActions>}
+            {state.kioskMode === KioskMode.Embed && (state.actions || state.breadcrumbActions) && (
+              <SingleTopBarActions
+                actions={state.actions}
+                breadcrumbActions={state.breadcrumbActions}
+                scopes={scopes}
+              />
+            )}
           </header>
         </>
       )}

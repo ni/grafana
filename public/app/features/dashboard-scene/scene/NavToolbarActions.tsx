@@ -23,8 +23,11 @@ import { contextSrv } from 'app/core/core';
 import { getDashboardSrv } from 'app/features/dashboard/services/DashboardSrv';
 import { trackDashboardSceneEditButtonClicked } from 'app/features/dashboard-scene/utils/tracking';
 import { playlistSrv } from 'app/features/playlist/PlaylistSrv';
-import { ScopesSelector } from 'app/features/scopes';
-import { KioskMode } from 'app/types';
+import { useGetResourceRepositoryView } from 'app/features/provisioning/hooks/useGetResourceRepositoryView';
+import { getReadOnlyTooltipText } from 'app/features/provisioning/utils/repository';
+import { StarToolbarButton } from 'app/features/stars/StarToolbarButton';
+import { useSelector } from 'app/types/store';
+import { KioskMode } from 'app/types/dashboard';
 
 import { selectFolderRepository } from '../../provisioning/utils/selectors';
 import { PanelEditor, buildPanelEditScene } from '../panel-edit/PanelEditor';
@@ -46,7 +49,7 @@ interface Props {
 }
 
 export const NavToolbarActions = memo<Props>(({ dashboard }) => {
-  const id = useId();
+   const hasNewToolbar = config.featureToggles.dashboardNewLayouts;
   const { kioskMode } = dashboard.useState();
 
   if (kioskMode === KioskMode.Embed) {

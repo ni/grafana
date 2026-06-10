@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom-v5-compat';
 import { getGrafanaContextMock } from 'test/mocks/getGrafanaContextMock';
 
 import { GrafanaContext } from 'app/core/context/GrafanaContext';
-import { KioskMode } from 'app/types';
+import { KioskMode } from 'app/types/dashboard';
 
 import { DashboardModel } from '../../state/DashboardModel';
 import { createDashboardModelFixture } from '../../state/__fixtures__/dashboardFixtures';

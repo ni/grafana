@@ -11,7 +11,7 @@ import { HOME_NAV_ID } from 'app/core/reducers/navModel';
 import { getGrafanaSearcher } from 'app/features/search/service/searcher';
 import { DashboardQueryResult, QueryResponse } from 'app/features/search/service/types';
 
-import { KioskMode } from 'app/types';
+import { KioskMode } from 'app/types/dashboard';
 
 import { Page } from '../Page/Page';
 

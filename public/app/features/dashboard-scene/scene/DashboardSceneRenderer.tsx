@@ -6,7 +6,8 @@ import { ScopesContext } from '@grafana/runtime';
 import { SceneComponentProps } from '@grafana/scenes';
 import { Page } from 'app/core/components/Page/Page';
 import { getNavModel } from 'app/core/selectors/navModel';
-import { KioskMode, useSelector } from 'app/types';
+import { useSelector } from 'app/types/store';
+import { KioskMode } from 'app/types/dashboard';
 
 import { DashboardEditPaneSplitter } from '../edit-pane/DashboardEditPaneSplitter';
 
@@ -15,8 +16,19 @@ import { PanelSearchLayout } from './PanelSearchLayout';
 import { SoloPanelContextProvider, useDefineSoloPanelContext } from './SoloPanelContext';
 
 export function DashboardSceneRenderer({ model }: SceneComponentProps<DashboardScene>) {
-  const { controls, overlay, editview, editPanel, viewPanelScene, panelSearch, panelsPerRow, isEditing, kioskMode } =
-    model.useState();
+  const {
+    controls,
+    overlay,
+    editview,
+    body,
+    editPanel,
+    viewPanel,
+    panelSearch,
+    panelsPerRow,
+    isEditing,
+    layoutOrchestrator,
+    kioskMode,
+  } = model.useState();
   const { type } = useParams();
   const location = useLocation();
   const scopesContext = useContext(ScopesContext);

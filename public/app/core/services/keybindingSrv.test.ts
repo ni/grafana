@@ -1,5 +1,5 @@
 import { LocationService } from '@grafana/runtime';
-import { KioskMode } from 'app/types';
+import { KioskMode } from 'app/types/dashboard';
 
 import { AppChromeService } from '../components/AppChrome/AppChromeService';
 
