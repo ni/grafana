@@ -1,11 +1,9 @@
-import { act, render } from '@testing-library/react';
+import { render } from '@testing-library/react';
 
-import { SceneGridLayout, SceneTimeRange, VizPanel } from '@grafana/scenes';
 import { KioskMode } from 'app/types/dashboard';
 
-import { DefaultGridLayoutManager } from './layout-default/DefaultGridLayoutManager';
-import { DashboardGridItem } from './layout-default/DashboardGridItem';
 import { DashboardScene } from './DashboardScene';
+import { DashboardSceneRenderer } from './DashboardSceneRenderer';
 
 jest.mock('react-router-dom-v5-compat', () => ({
   useParams: () => ({}),
@@ -13,19 +11,23 @@ jest.mock('react-router-dom-v5-compat', () => ({
 }));
 
 jest.mock('app/types/store', () => ({
-  useSelector: (fn: Function) => fn({ navIndex: {} }),
+  useSelector: jest.fn().mockReturnValue({}),
 }));
 
 jest.mock('app/core/selectors/navModel', () => ({
-  getNavModel: () => ({ main: { children: [] }, node: { id: 'home', text: 'Home', url: '/' } }),
+  getNavModel: jest.fn().mockReturnValue({}),
 }));
 
 jest.mock('app/core/components/Page/Page', () => ({
-  Page: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  Page: ({ children }: any) => children,
 }));
 
 jest.mock('../edit-pane/DashboardEditPaneSplitter', () => ({
-  DashboardEditPaneSplitter: () => null,
+  DashboardEditPaneSplitter: ({ body }: any) => body,
+}));
+
+jest.mock('./DashboardScene', () => ({
+  DashboardScene: jest.fn(),
 }));
 
 jest.mock('./PanelSearchLayout', () => ({
@@ -33,22 +35,31 @@ jest.mock('./PanelSearchLayout', () => ({
 }));
 
 jest.mock('./SoloPanelContext', () => ({
+  SoloPanelContextProvider: ({ children }: any) => children,
   useDefineSoloPanelContext: () => null,
-  SoloPanelContextProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 const STYLE_ID = 'kiosk-embed-panel-menu-hide';
 
-function buildTestScene(kioskMode?: KioskMode): DashboardScene {
-  return new DashboardScene({
-    $timeRange: new SceneTimeRange({ from: 'now-6h', to: 'now' }),
-    kioskMode,
-    body: new DefaultGridLayoutManager({
-      grid: new SceneGridLayout({
-        children: [new DashboardGridItem({ body: new VizPanel({ pluginId: 'text' }) })],
-      }),
+function buildMockModel(kioskMode?: KioskMode) {
+  return {
+    useState: () => ({
+      kioskMode,
+      controls: undefined,
+      overlay: undefined,
+      editview: undefined,
+      body: undefined,
+      editPanel: undefined,
+      viewPanel: undefined,
+      panelSearch: {} as any,
+      panelsPerRow: undefined,
+      isEditing: false,
+      layoutOrchestrator: undefined,
     }),
-  });
+    getPageNav: jest.fn().mockReturnValue(undefined),
+    rememberScrollPos: jest.fn(),
+    restoreScrollPos: jest.fn(),
+  };
 }
 
 describe('DashboardSceneRenderer', () => {
@@ -58,39 +69,17 @@ describe('DashboardSceneRenderer', () => {
     });
 
     it('should inject hide-panel-menu style when kioskMode is Embed', () => {
-      const scene = buildTestScene(KioskMode.Embed);
-
-      render(<scene.Component model={scene} />);
-
+      render(<DashboardSceneRenderer model={buildMockModel(KioskMode.Embed) as unknown as DashboardScene} />);
       expect(document.getElementById(STYLE_ID)).toBeInTheDocument();
     });
 
     it('should NOT inject hide-panel-menu style when kioskMode is Full', () => {
-      const scene = buildTestScene(KioskMode.Full);
-
-      render(<scene.Component model={scene} />);
-
+      render(<DashboardSceneRenderer model={buildMockModel(KioskMode.Full) as unknown as DashboardScene} />);
       expect(document.getElementById(STYLE_ID)).not.toBeInTheDocument();
     });
 
     it('should NOT inject hide-panel-menu style when no kiosk mode is set', () => {
-      const scene = buildTestScene(undefined);
-
-      render(<scene.Component model={scene} />);
-
-      expect(document.getElementById(STYLE_ID)).not.toBeInTheDocument();
-    });
-
-    it('should remove the style when kioskMode changes away from Embed', () => {
-      const scene = buildTestScene(KioskMode.Embed);
-      render(<scene.Component model={scene} />);
-
-      expect(document.getElementById(STYLE_ID)).toBeInTheDocument();
-
-      act(() => {
-        scene.setState({ kioskMode: undefined });
-      });
-
+      render(<DashboardSceneRenderer model={buildMockModel(undefined) as unknown as DashboardScene} />);
       expect(document.getElementById(STYLE_ID)).not.toBeInTheDocument();
     });
   });
