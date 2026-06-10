@@ -701,7 +701,6 @@ describe('panelMenuBehavior', () => {
         ]);
       });
     });
-
   });
 
   describe('onCreateAlert', () => {

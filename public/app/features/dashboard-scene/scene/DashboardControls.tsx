@@ -154,7 +154,6 @@ function DashboardControlsRenderer({ model }: SceneComponentProps<DashboardContr
   const showDebugger = window.location.search.includes('scene-debugger');
 
   const isKioskEmbed = kioskMode === KioskMode.Embed;
-  const shouldHideVariables = hideVariableControls || isKioskEmbed;
 
   if (!model.hasControls()) {
     // To still have spacing when no controls are rendered
@@ -179,9 +178,9 @@ function DashboardControlsRenderer({ model }: SceneComponentProps<DashboardContr
             <DashboardControlsButton dashboard={dashboard} />
           </div>
         )}
-        {!hideLinksControls && !editPanel && !isKioskEmbed && <DashboardLinksControls links={links} dashboard={dashboard} />}
+        {!hideLinksControls && !isKioskEmbed && !editPanel && <DashboardLinksControls links={links} dashboard={dashboard} />}
       </div>
-      {!shouldHideVariables && (
+      {!hideVariableControls && !isKioskEmbed && (
         <>
           <VariableControls dashboard={dashboard} />
           <DashboardDataLayerControls dashboard={dashboard} />

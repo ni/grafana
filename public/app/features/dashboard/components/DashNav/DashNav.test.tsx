@@ -11,8 +11,6 @@ import { createDashboardModelFixture } from '../../state/__fixtures__/dashboardF
 
 import { DashNav } from './DashNav';
 
-// DashNav renders via AppChromeUpdate which injects actions into the chrome.
-// We mock AppChromeUpdate to directly render the actions prop so we can test what DashNav produces.
 jest.mock('app/core/components/AppChrome/AppChromeUpdate', () => ({
   AppChromeUpdate: ({ actions }: { actions: React.ReactNode }) => <div data-testid="dashnav-actions">{actions}</div>,
 }));

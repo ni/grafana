@@ -3,7 +3,6 @@ import { KioskMode } from 'app/types/dashboard';
 
 import { AppChromeService } from '../components/AppChrome/AppChromeService';
 
-// Mock heavy transitive imports that are not needed for these tests
 jest.mock('app/core/utils/explore', () => ({ getExploreUrl: jest.fn() }));
 jest.mock('app/features/dashboard/components/SaveDashboard/SaveDashboardDrawer', () => ({}));
 jest.mock('app/features/dashboard/components/ShareModal/ShareModal', () => ({}));
@@ -36,19 +35,15 @@ describe('KeybindingSrv', () => {
     });
 
     it('should not exit kiosk mode when in Embed mode', () => {
-      // Set embed kiosk mode
       chromeService.update({ kioskMode: KioskMode.Embed });
       const exitSpy = jest.spyOn(chromeService, 'exitKioskMode');
 
-      // Trigger escape (calls private exit method via keybinding)
-      // We need to access the private method - use bracket notation
       (keybindingSrv as any).exit();
 
       expect(exitSpy).not.toHaveBeenCalled();
     });
 
     it('should exit kiosk mode when in Full mode', () => {
-      // Set full kiosk mode
       chromeService.update({ kioskMode: KioskMode.Full });
       const exitSpy = jest.spyOn(chromeService, 'exitKioskMode');
 
