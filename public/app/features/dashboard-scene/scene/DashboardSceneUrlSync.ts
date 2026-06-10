@@ -26,7 +26,9 @@ export class DashboardSceneUrlSync implements SceneObjectUrlSyncHandler {
       viewPanel: state.viewPanel,
       editview: state.editview?.getUrlKey(),
       editPanel: state.editPanel?.getUrlKey() || undefined,
-      kiosk: state.kioskMode === KioskMode.Full ? '' : state.kioskMode === KioskMode.Embed ? 'embed' : undefined,
+      kiosk: state.kioskMode === KioskMode.Full
+        ? 'true'
+        : state.kioskMode === KioskMode.Embed ? 'embed' : undefined,
       shareView: state.shareView,
       orgId: contextSrv.user.orgId.toString(),
     };
