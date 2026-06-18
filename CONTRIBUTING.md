@@ -134,3 +134,7 @@ Before we can accept your pull request, you need to [sign our CLA](https://grafa
 - Learn how to [contribute to our documentation](contribute/documentation/README.md).
 - Get started [developing plugins](https://grafana.com/developers/plugin-tools) for Grafana.
 - Look through the resources in the [contribute](contribute) folder.
+
+## Security scanning
+
+See the [security scanning reference](https://dev.azure.com/ni/DevCentral/_wiki/wikis/Stratus/160265/Security-scanning-reference) for information on security scanning tools, workflows, and best practices.
