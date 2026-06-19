@@ -354,7 +354,7 @@ func (s *UserSync) FetchSyncedUserHook(ctx context.Context, id *authn.Identity, 
 		}
 
 		if errors.Is(err, context.Canceled) {
-        	return err
+			return err
 		}
 
 		return errFetchingSignedInUser.Errorf("failed to resolve user: %w", err)
