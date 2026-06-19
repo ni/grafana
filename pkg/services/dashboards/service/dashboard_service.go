@@ -1543,6 +1543,9 @@ func (dr *DashboardServiceImpl) fetchFolderNames(ctx context.Context, query *das
 
 	folders, err := dr.folderService.SearchFolders(serviceCtx, search)
 	if err != nil {
+		if errors.Is(err, context.Canceled) {
+			return nil, err
+		}
 		return nil, folder.ErrInternal.Errorf("failed to fetch parent folders: %w", err)
 	}
 
