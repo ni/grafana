@@ -13,6 +13,7 @@ import (
 
 	claims "github.com/grafana/authlib/types"
 
+	"github.com/grafana/grafana/pkg/apimachinery/errutil"
 	"github.com/grafana/grafana/pkg/infra/log"
 	"github.com/grafana/grafana/pkg/infra/tracing"
 	"github.com/grafana/grafana/pkg/services/authn"
@@ -961,6 +962,53 @@ func TestUserSync_FetchSyncedUserHook(t *testing.T) {
 			require.ErrorIs(t, err, tt.expectedErr)
 		})
 	}
+}
+
+func TestUserSync_FetchSyncedUserHook_ContextCanceled(t *testing.T) {
+	userSvc := &usertest.FakeUserService{ExpectedError: context.Canceled}
+	s := UserSync{
+		userService: userSvc,
+		tracer:      tracing.InitializeTracerForTest(),
+	}
+
+	identity := &authn.Identity{
+		ID:   "1",
+		Type: claims.TypeUser,
+		ClientParams: authn.ClientParams{
+			FetchSyncedUser: true,
+		},
+	}
+
+	err := s.FetchSyncedUserHook(context.Background(), identity, &authn.Request{})
+
+	require.ErrorIs(t, err, context.Canceled, "expected context.Canceled to be propagated unwrapped")
+
+	var grafanaErr errutil.Error
+	assert.False(t, errors.As(err, &grafanaErr), "expected context.Canceled NOT to be wrapped as errutil.Error")
+}
+
+func TestUserSync_FetchSyncedUserHook_GenericErrorIsWrapped(t *testing.T) {
+	genericErr := errors.New("some db error")
+	userSvc := &usertest.FakeUserService{ExpectedError: genericErr}
+	s := UserSync{
+		userService: userSvc,
+		tracer:      tracing.InitializeTracerForTest(),
+	}
+
+	identity := &authn.Identity{
+		ID:   "1",
+		Type: claims.TypeUser,
+		ClientParams: authn.ClientParams{
+			FetchSyncedUser: true,
+		},
+	}
+
+	err := s.FetchSyncedUserHook(context.Background(), identity, &authn.Request{})
+
+	// It must be wrapped as errFetchingSignedInUser (errutil.Internal with id user.sync.fetch)
+	var grafanaErr errutil.Error
+	assert.True(t, errors.As(err, &grafanaErr), "expected generic error to be wrapped as errutil.Error")
+	assert.Equal(t, "user.sync.fetch", grafanaErr.MessageID)
 }
 
 func TestUserSync_CatalogLoginHook(t *testing.T) {

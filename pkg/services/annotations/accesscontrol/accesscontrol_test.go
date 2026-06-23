@@ -2,8 +2,10 @@ package accesscontrol
 
 import (
 	"context"
+	"errors"
 	"testing"
 
+	"github.com/grafana/grafana/pkg/apimachinery/errutil"
 	"github.com/grafana/grafana/pkg/infra/db"
 	"github.com/grafana/grafana/pkg/services/annotations"
 	"github.com/grafana/grafana/pkg/services/dashboards"
@@ -106,4 +108,71 @@ func TestDashboardsWithVisibleAnnotations(t *testing.T) {
 	assert.Equal(t, map[string]int64{"uid1": 101}, result)
 	// Ensure SearchDashboards was called with correct query (including DashboardUID filter)
 	dashSvc.AssertCalled(t, "SearchDashboards", mock.Anything, queryWithDashboardUID)
+}
+
+func TestAuthorize_ContextCanceled(t *testing.T) {
+	store := db.InitTestDB(t)
+
+	usr := &user.SignedInUser{
+		OrgID: 1,
+		Permissions: map[int64]map[string][]string{
+			1: {
+				"annotations:read": {"annotations:type:dashboard"},
+			},
+		},
+	}
+
+	dashSvc := &dashboards.FakeDashboardService{}
+	dashSvc.On("SearchDashboards", mock.Anything, mock.Anything).Return(nil, context.Canceled)
+
+	authz := &AuthService{
+		db:                        store,
+		features:                  featuremgmt.WithFeatures(),
+		dashSvc:                   dashSvc,
+		searchDashboardsPageLimit: 100,
+	}
+
+	_, err := authz.Authorize(context.Background(), annotations.ItemQuery{
+		SignedInUser: usr,
+		OrgID:        1,
+	})
+
+	assert.ErrorIs(t, err, context.Canceled, "expected context.Canceled to be propagated unwrapped")
+
+	var grafanaErr errutil.Error
+	assert.False(t, errors.As(err, &grafanaErr), "expected context.Canceled NOT to be wrapped as errutil.Error")
+}
+
+func TestAuthorize_GenericErrorIsWrapped(t *testing.T) {
+	store := db.InitTestDB(t)
+
+	usr := &user.SignedInUser{
+		OrgID: 1,
+		Permissions: map[int64]map[string][]string{
+			1: {
+				"annotations:read": {"annotations:type:dashboard"},
+			},
+		},
+	}
+
+	genericErr := errors.New("db connection failed")
+	dashSvc := &dashboards.FakeDashboardService{}
+	dashSvc.On("SearchDashboards", mock.Anything, mock.Anything).Return(nil, genericErr)
+
+	authz := &AuthService{
+		db:                        store,
+		features:                  featuremgmt.WithFeatures(),
+		dashSvc:                   dashSvc,
+		searchDashboardsPageLimit: 100,
+	}
+
+	_, err := authz.Authorize(context.Background(), annotations.ItemQuery{
+		SignedInUser: usr,
+		OrgID:        1,
+	})
+
+	// It must be a Grafana typed error (ErrAccessControlInternal)
+	var grafanaErr errutil.Error
+	assert.True(t, errors.As(err, &grafanaErr), "expected generic error to be wrapped as errutil.Error")
+	assert.Equal(t, "annotations.accesscontrol.internal", grafanaErr.MessageID)
 }

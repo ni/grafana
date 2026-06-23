@@ -427,6 +427,59 @@ func TestAPI_Annotations(t *testing.T) {
 	}
 }
 
+func TestAPI_GetAnnotations_ContextCanceled(t *testing.T) {
+	repo := &annotations.FakeAnnotationsRepo{}
+	repo.On("Find", mock.Anything, mock.Anything).Return(nil, context.Canceled)
+
+	server := SetupAPITestServer(t, func(hs *HTTPServer) {
+		hs.Cfg = setting.NewCfg()
+		hs.annotationsRepo = repo
+		hs.Features = featuremgmt.WithFeatures()
+		hs.DashboardService = &dashboards.FakeDashboardService{}
+		hs.folderService = &foldertest.FakeService{}
+		hs.AccessControl = acimpl.ProvideAccessControl(featuremgmt.WithFeatures())
+		hs.AccessControl.RegisterScopeAttributeResolver(AnnotationTypeScopeResolver(hs.annotationsRepo, hs.Features, hs.DashboardService.(*dashboards.FakeDashboardService), hs.folderService.(*foldertest.FakeService)))
+	})
+
+	req := webtest.RequestWithSignedInUser(
+		server.NewRequest(http.MethodGet, "/api/annotations", nil),
+		authedUserWithPermissions(1, 1, []accesscontrol.Permission{
+			{Action: accesscontrol.ActionAnnotationsRead, Scope: accesscontrol.ScopeAnnotationsAll},
+		}),
+	)
+	res, err := server.SendJSON(req)
+	require.NoError(t, err)
+	assert.Equal(t, 499, res.StatusCode)
+	require.NoError(t, res.Body.Close())
+}
+
+func TestAPI_GetAnnotations_GenericError(t *testing.T) {
+	repo := &annotations.FakeAnnotationsRepo{}
+	// Use a non-context.Canceled error to verify ErrOrFallback falls back to 500
+	repo.On("Find", mock.Anything, mock.Anything).Return(nil, context.DeadlineExceeded)
+
+	server := SetupAPITestServer(t, func(hs *HTTPServer) {
+		hs.Cfg = setting.NewCfg()
+		hs.annotationsRepo = repo
+		hs.Features = featuremgmt.WithFeatures()
+		hs.DashboardService = &dashboards.FakeDashboardService{}
+		hs.folderService = &foldertest.FakeService{}
+		hs.AccessControl = acimpl.ProvideAccessControl(featuremgmt.WithFeatures())
+		hs.AccessControl.RegisterScopeAttributeResolver(AnnotationTypeScopeResolver(hs.annotationsRepo, hs.Features, hs.DashboardService.(*dashboards.FakeDashboardService), hs.folderService.(*foldertest.FakeService)))
+	})
+
+	req := webtest.RequestWithSignedInUser(
+		server.NewRequest(http.MethodGet, "/api/annotations", nil),
+		authedUserWithPermissions(1, 1, []accesscontrol.Permission{
+			{Action: accesscontrol.ActionAnnotationsRead, Scope: accesscontrol.ScopeAnnotationsAll},
+		}),
+	)
+	res, err := server.SendJSON(req)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+	require.NoError(t, res.Body.Close())
+}
+
 func TestService_AnnotationTypeScopeResolver(t *testing.T) {
 	rootDashUID := "root-dashboard"
 	folderDashUID := "folder-dashboard"

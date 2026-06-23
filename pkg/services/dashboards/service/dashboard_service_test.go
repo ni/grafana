@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"slices"
@@ -18,6 +19,7 @@ import (
 	"k8s.io/apiserver/pkg/endpoints/request"
 
 	dashboardv0 "github.com/grafana/grafana/apps/dashboard/pkg/apis/dashboard/v0alpha1"
+	"github.com/grafana/grafana/pkg/apimachinery/errutil"
 	"github.com/grafana/grafana/pkg/apimachinery/identity"
 	"github.com/grafana/grafana/pkg/apimachinery/utils"
 	"github.com/grafana/grafana/pkg/components/simplejson"
@@ -2684,4 +2686,45 @@ func TestGetDashboardsByLibraryPanelUID(t *testing.T) {
 	}
 
 	k8sCliMock.AssertExpectations(t)
+}
+
+func TestFetchFolderNames_ContextCanceled(t *testing.T) {
+	fakeFolders := foldertest.NewFakeService()
+	fakeFolders.ExpectedError = context.Canceled
+
+	service := &DashboardServiceImpl{
+		cfg:           setting.NewCfg(),
+		features:      featuremgmt.WithFeatures(),
+		folderService: fakeFolders,
+		metrics:       newDashboardsMetrics(prometheus.NewRegistry()),
+	}
+
+	query := &dashboards.FindPersistedDashboardsQuery{OrgId: 1}
+	_, err := service.fetchFolderNames(context.Background(), query, nil)
+
+	require.ErrorIs(t, err, context.Canceled, "expected context.Canceled to be propagated unwrapped")
+
+	var grafanaErr errutil.Error
+	assert.False(t, errors.As(err, &grafanaErr), "expected context.Canceled NOT to be wrapped as errutil.Error")
+}
+
+func TestFetchFolderNames_GenericErrorIsWrapped(t *testing.T) {
+	genericErr := errors.New("some db error")
+	fakeFolders := foldertest.NewFakeService()
+	fakeFolders.ExpectedError = genericErr
+
+	service := &DashboardServiceImpl{
+		cfg:           setting.NewCfg(),
+		features:      featuremgmt.WithFeatures(),
+		folderService: fakeFolders,
+		metrics:       newDashboardsMetrics(prometheus.NewRegistry()),
+	}
+
+	query := &dashboards.FindPersistedDashboardsQuery{OrgId: 1}
+	_, err := service.fetchFolderNames(context.Background(), query, nil)
+
+	// It must be wrapped as folder.ErrInternal
+	var grafanaErr errutil.Error
+	assert.True(t, errors.As(err, &grafanaErr), "expected generic error to be wrapped as errutil.Error")
+	assert.Equal(t, "folder.internal", grafanaErr.MessageID)
 }

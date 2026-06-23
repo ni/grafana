@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -65,6 +66,41 @@ func TestAPI_getUserActions(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAPI_getUserActions_ContextCanceled(t *testing.T) {
+	acSvc := actest.FakeService{ExpectedErr: context.Canceled}
+	api := NewAccessControlAPI(routing.NewRouteRegister(), actest.FakeAccessControl{}, acSvc, &usertest.FakeUserService{})
+	api.RegisterAPIEndpoints()
+
+	server := webtest.NewServer(t, api.RouteRegister)
+	req := server.NewGetRequest("/api/access-control/user/actions")
+	webtest.RequestWithSignedInUser(req, &user.SignedInUser{
+		OrgID:       1,
+		Permissions: map[int64]map[string][]string{},
+	})
+	res, err := server.Send(req)
+	defer func() { require.NoError(t, res.Body.Close()) }()
+	require.NoError(t, err)
+	require.Equal(t, 499, res.StatusCode)
+}
+
+func TestAPI_getUserActions_GenericError(t *testing.T) {
+	// Use a non-context.Canceled error to verify the original JSON 500 path is preserved
+	acSvc := actest.FakeService{ExpectedErr: context.DeadlineExceeded}
+	api := NewAccessControlAPI(routing.NewRouteRegister(), actest.FakeAccessControl{}, acSvc, &usertest.FakeUserService{})
+	api.RegisterAPIEndpoints()
+
+	server := webtest.NewServer(t, api.RouteRegister)
+	req := server.NewGetRequest("/api/access-control/user/actions")
+	webtest.RequestWithSignedInUser(req, &user.SignedInUser{
+		OrgID:       1,
+		Permissions: map[int64]map[string][]string{},
+	})
+	res, err := server.Send(req)
+	defer func() { require.NoError(t, res.Body.Close()) }()
+	require.NoError(t, err)
+	require.Equal(t, http.StatusInternalServerError, res.StatusCode)
 }
 
 func TestAPI_getUserPermissions(t *testing.T) {
