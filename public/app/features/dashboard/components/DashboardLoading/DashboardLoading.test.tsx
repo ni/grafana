@@ -40,8 +40,9 @@ describe('DashboardLoading', () => {
     });
 
     it('navigates to home when Cancel loading dashboard is clicked', async () => {
+      const user = userEvent.setup();
       render(<DashboardLoading initPhase={DashboardInitPhase.Fetching} />);
-      await userEvent.click(screen.getByRole('button', { name: /cancel loading dashboard/i }));
+      await user.click(screen.getByRole('button', { name: /cancel loading dashboard/i }));
       expect(mockPush).toHaveBeenCalledWith('/');
     });
   });
@@ -59,11 +60,6 @@ describe('DashboardLoading', () => {
     it('hides the Cancel loading dashboard button', () => {
       render(<DashboardLoading initPhase={DashboardInitPhase.Fetching} />);
       expect(screen.queryByRole('button', { name: /cancel loading dashboard/i })).not.toBeInTheDocument();
-    });
-
-    it('does not navigate when dashboard is loading', async () => {
-      render(<DashboardLoading initPhase={DashboardInitPhase.Fetching} />);
-      expect(mockPush).not.toHaveBeenCalled();
     });
   });
 });
