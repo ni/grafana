@@ -29,6 +29,7 @@ import { TimeZone } from '../types/time';
 import { FieldMatcher } from '../types/transformations';
 import { mapInternalLinkToExplore } from '../utils/dataLinks';
 import { locationUtil } from '../utils/location';
+import { urlUtil } from '../utils/url';
 
 import { FieldConfigOptionsRegistry } from './FieldConfigOptionsRegistry';
 import { getDisplayProcessor, getRawDisplayProcessor } from './displayProcessor';
@@ -460,6 +461,71 @@ const defaultInternalLinkPostProcessor: DataLinkPostProcessor = (options) => {
   }
 };
 
+function preserveKioskModeInDataLink(href: string): string {
+  const isNonBrowserEnvironment = typeof window === 'undefined';
+  if (
+    isNonBrowserEnvironment
+    || isHashOrProtocolRelativeHref(href)
+    || isNonNavigableSchemeHref(href)
+  ) {
+    return href;
+  }
+
+  const currentParams = urlUtil.parseKeyValue(window.location.search.substring(1));
+  const currentKiosk = currentParams.kiosk;
+  const hasKioskInCurrentUrl = currentKiosk !== undefined
+    && currentKiosk !== null
+    && currentKiosk !== false;
+  if (!hasKioskInCurrentUrl) {
+    return href;
+  }
+
+  let parsedHref: URL;
+  try {
+    parsedHref = new URL(href, window.location.origin);
+  } catch {
+    return href;
+  }
+
+  const hasUriScheme = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(href);
+  const isExternalAbsoluteUrl = hasUriScheme
+    && parsedHref.origin !== window.location.origin;
+  if (isExternalAbsoluteUrl) {
+    return href;
+  }
+
+  const linkAlreadyDefinesKiosk = parsedHref.searchParams.has('kiosk');
+  if (linkAlreadyDefinesKiosk) {
+    return href;
+  }
+
+  const kioskValue = typeof currentKiosk === 'string'
+    ? currentKiosk
+    : String(currentKiosk);
+  parsedHref.searchParams.set('kiosk', kioskValue);
+
+  if (hasUriScheme) {
+    return parsedHref.toString();
+  }
+
+  return `${parsedHref.pathname}${parsedHref.search}${parsedHref.hash}`;
+}
+
+function isHashOrProtocolRelativeHref(href: string): boolean {
+  const isHashOnlyLink = href.startsWith('#');
+  const isProtocolRelativeLink = href.startsWith('//');
+  return isHashOnlyLink || isProtocolRelativeLink;
+}
+
+function isNonNavigableSchemeHref(href: string): boolean {
+  const lowerHref = href.toLowerCase();
+  const isMailtoLink = lowerHref.startsWith('mailto:');
+  const isTelLink = lowerHref.startsWith('tel:');
+  const isJavascriptPseudoLink = lowerHref.startsWith('javascript:');
+
+  return isMailtoLink || isTelLink || isJavascriptPseudoLink;
+}
+
 export const getLinksSupplier =
   (
     frame: DataFrame,
@@ -507,6 +573,7 @@ export const getLinksSupplier =
 
         if (href?.length > 0) {
           href = locationUtil.processUrl(href);
+          href = preserveKioskModeInDataLink(href);
         }
       }
 
