@@ -469,16 +469,8 @@ function preserveKioskModeInDataLink(href: string): string {
     isNonBrowserEnvironment
     || isHashOrProtocolRelativeHref(href)
     || isNonNavigableSchemeHref(href)
+    || isExternalAbsoluteUrl(href)
   ) {
-    return href;
-  }
-
-  const currentParams = urlUtil.parseKeyValue(window.location.search.substring(1));
-  const currentKiosk = currentParams.kiosk;
-  const hasKioskInCurrentUrl = currentKiosk !== undefined
-    && currentKiosk !== null
-    && currentKiosk !== false;
-  if (!hasKioskInCurrentUrl) {
     return href;
   }
 
@@ -489,15 +481,18 @@ function preserveKioskModeInDataLink(href: string): string {
     return href;
   }
 
-  const hasUriScheme = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(href);
-  const isExternalAbsoluteUrl = hasUriScheme
-    && parsedHref.origin !== window.location.origin;
-  if (isExternalAbsoluteUrl) {
-    return href;
-  }
 
   const linkAlreadyDefinesKiosk = parsedHref.searchParams.has('kiosk');
   if (linkAlreadyDefinesKiosk) {
+    return href;
+  }
+
+  const currentParams = urlUtil.parseKeyValue(window.location.search.substring(1));
+  const currentKiosk = currentParams.kiosk;
+  const hasKioskInCurrentUrl = currentKiosk !== undefined
+    && currentKiosk !== null
+    && currentKiosk !== false;
+  if (!hasKioskInCurrentUrl) {
     return href;
   }
 
@@ -533,6 +528,15 @@ function isNonNavigableSchemeHref(href: string): boolean {
   const isJavascriptPseudoLink = lowerHref.startsWith('javascript:');
 
   return isMailtoLink || isTelLink || isJavascriptPseudoLink;
+}
+
+function isExternalAbsoluteUrl(href: string): boolean {
+  try {
+    const absoluteUrl = new URL(href);
+    return absoluteUrl.origin !== window.location.origin;
+  } catch {
+    return false;
+  }
 }
 
 export const getLinksSupplier =
