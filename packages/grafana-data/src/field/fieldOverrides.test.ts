@@ -1280,10 +1280,10 @@ describe('getLinksSupplier', () => {
       expectedHref: 'tel:+1234567890',
     },
     {
-      title: 'when user clicks a javascript pseudo-link, kiosk logic does not modify it',
+      title: 'when user clicks a javascript pseudo-link, sanitized href is not modified by kiosk logic',
       currentUrl: '/d/source?kiosk=embed',
       linkUrl: 'javascript:void(0)',
-      expectedHref: 'javascript:void(0)',
+      expectedHref: 'about:blank',
     },
     {
       title: 'when user is not in kiosk mode, clicked link is not modified',
@@ -1306,8 +1306,8 @@ describe('getLinksSupplier', () => {
     {
       title: 'when user is in kiosk mode and clicks a same-origin absolute link, kiosk is preserved',
       currentUrl: '/d/source?kiosk=embed',
-      linkUrl: 'https://grafana.acme.com/d/target?orgId=1',
-      expectedHref: 'https://grafana.acme.com/d/target?orgId=1&kiosk=embed',
+      linkUrl: 'http://localhost/d/target?orgId=1',
+      expectedHref: 'http://localhost/d/target?orgId=1&kiosk=embed',
     },
     {
       title: 'when user is in kiosk mode and clicks a relative dashboard link, kiosk is preserved',
@@ -1324,32 +1324,50 @@ describe('getLinksSupplier', () => {
   ];
 
   const replaceIdentity: InterpolateFunction = (value) => value;
-  it.each(kioskLinkCases)('$title', ({ currentUrl, linkUrl, expectedHref }) => {
-    window.history.replaceState({}, '', currentUrl);
-
-    const f0 = createDataFrame({
-      name: 'A',
-      fields: [
-        {
-          name: 'message',
-          type: FieldType.string,
-          config: {
-            links: [
-              {
-                url: linkUrl,
-                title: 'target',
-              },
-            ],
-          },
-        },
-      ],
+  describe('kiosk mode preservation', () => {
+    beforeEach(() => {
+      locationUtil.initialize({
+        config: { appSubUrl: '' } as GrafanaConfig,
+        getVariablesUrlParams: jest.fn(),
+        getTimeRangeForUrl: jest.fn(),
+      });
     });
 
-    const supplier = getLinksSupplier(f0, f0.fields[0], {}, replaceIdentity);
-    const links = supplier({});
+    afterEach(() => {
+      locationUtil.initialize({
+        config: { appSubUrl: '/subUrl' } as GrafanaConfig,
+        getVariablesUrlParams: jest.fn(),
+        getTimeRangeForUrl: jest.fn(),
+      });
+    });
 
-    expect(links).toHaveLength(1);
-    expect(links[0].href).toBe(expectedHref);
+    it.each(kioskLinkCases)('$title', ({ currentUrl, linkUrl, expectedHref }) => {
+      window.history.replaceState({}, '', currentUrl);
+
+      const dataframe = createDataFrame({
+        name: 'A',
+        fields: [
+          {
+            name: 'message',
+            type: FieldType.string,
+            config: {
+              links: [
+                {
+                  url: linkUrl,
+                  title: 'target',
+                },
+              ],
+            },
+          },
+        ],
+      });
+
+      const supplier = getLinksSupplier(dataframe, dataframe.fields[0], {}, replaceIdentity);
+      const links = supplier({});
+
+      expect(links).toHaveLength(1);
+      expect(links[0].href).toBe(expectedHref);
+    });
   });
 });
 

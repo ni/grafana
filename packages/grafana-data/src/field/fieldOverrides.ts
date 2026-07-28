@@ -448,7 +448,7 @@ const defaultInternalLinkPostProcessor: DataLinkPostProcessor = (options) => {
   const { link, linkModel, dataLinkScopedVars, field, replaceVariables } = options;
 
   if (link.internal) {
-    return mapInternalLinkToExplore({
+    const exploreLink = mapInternalLinkToExplore({
       link,
       internalLink: link.internal,
       scopedVars: dataLinkScopedVars,
@@ -456,6 +456,8 @@ const defaultInternalLinkPostProcessor: DataLinkPostProcessor = (options) => {
       range: link.internal.range,
       replaceVariables,
     });
+    exploreLink.href = preserveKioskModeInDataLink(exploreLink.href);
+    return exploreLink;
   } else {
     return linkModel;
   }
@@ -502,13 +504,20 @@ function preserveKioskModeInDataLink(href: string): string {
   const kioskValue = typeof currentKiosk === 'string'
     ? currentKiosk
     : String(currentKiosk);
-  parsedHref.searchParams.set('kiosk', kioskValue);
 
-  if (hasUriScheme) {
-    return parsedHref.toString();
-  }
+  const hashIndex = href.indexOf('#');
 
-  return `${parsedHref.pathname}${parsedHref.search}${parsedHref.hash}`;
+  const hrefWithoutHash = hashIndex >= 0
+    ? href.slice(0, hashIndex)
+    : href;
+
+  const hash = hashIndex >= 0 ? href.slice(hashIndex) : '';
+
+  const separator = hrefWithoutHash.endsWith('?')
+    ? ''
+    : hrefWithoutHash.includes('?') ? '&' : '?';
+
+  return `${hrefWithoutHash}${separator}kiosk=${encodeURIComponent(kioskValue)}${hash}`;
 }
 
 function isHashOrProtocolRelativeHref(href: string): boolean {
@@ -572,8 +581,7 @@ export const getLinksSupplier =
         href = replaceVariables(href, dataLinkScopedVars, VariableFormatID.UriEncode);
 
         if (href?.length > 0) {
-          href = locationUtil.processUrl(href);
-          href = preserveKioskModeInDataLink(href);
+          href = preserveKioskModeInDataLink(locationUtil.processUrl(href));
         }
       }
 
