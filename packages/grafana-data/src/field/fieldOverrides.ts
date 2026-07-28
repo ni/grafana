@@ -465,10 +465,10 @@ const defaultInternalLinkPostProcessor: DataLinkPostProcessor = (options) => {
 function preserveKioskModeInDataLink(href: string): string {
   const isNonBrowserEnvironment = typeof window === 'undefined';
   if (
-    isNonBrowserEnvironment
-    || isHashOrProtocolRelativeHref(href)
-    || isNonNavigableSchemeHref(href)
-    || isExternalAbsoluteUrl(href)
+    isNonBrowserEnvironment ||
+    isHashOrProtocolRelativeHref(href) ||
+    isNonNavigableSchemeHref(href) ||
+    isExternalAbsoluteUrl(href)
   ) {
     return href;
   }
@@ -492,15 +492,11 @@ function preserveKioskModeInDataLink(href: string): string {
 
   const hashIndex = href.indexOf('#');
 
-  const hrefWithoutHash = hashIndex >= 0
-    ? href.slice(0, hashIndex)
-    : href;
+  const hrefWithoutHash = hashIndex >= 0 ? href.slice(0, hashIndex) : href;
 
   const hash = hashIndex >= 0 ? href.slice(hashIndex) : '';
 
-  const separator = hrefWithoutHash.endsWith('?')
-    ? ''
-    : hrefWithoutHash.includes('?') ? '&' : '?';
+  const separator = hrefWithoutHash.endsWith('?') ? '' : hrefWithoutHash.includes('?') ? '&' : '?';
 
   return `${hrefWithoutHash}${separator}kiosk=${encodeURIComponent(currentKiosk)}${hash}`;
 }

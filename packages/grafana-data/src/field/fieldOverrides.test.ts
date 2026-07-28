@@ -1316,7 +1316,8 @@ describe('getLinksSupplier', () => {
       expectedHref: '/d/target?orgId=1&kiosk=embed',
     },
     {
-      title: 'when user is in kiosk mode and clicks a relative dashboard link with hash, kiosk is added and hash is preserved',
+      title:
+        'when user is in kiosk mode and clicks a relative dashboard link with hash, kiosk is added and hash is preserved',
       currentUrl: '/d/source?kiosk=embed',
       linkUrl: '/d/target?orgId=1#panel-5',
       expectedHref: '/d/target?orgId=1&kiosk=embed#panel-5',
