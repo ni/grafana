@@ -29,7 +29,6 @@ import { TimeZone } from '../types/time';
 import { FieldMatcher } from '../types/transformations';
 import { mapInternalLinkToExplore } from '../utils/dataLinks';
 import { locationUtil } from '../utils/location';
-import { urlUtil } from '../utils/url';
 
 import { FieldConfigOptionsRegistry } from './FieldConfigOptionsRegistry';
 import { getDisplayProcessor, getRawDisplayProcessor } from './displayProcessor';
@@ -486,18 +485,10 @@ function preserveKioskModeInDataLink(href: string): string {
     return href;
   }
 
-  const currentParams = urlUtil.parseKeyValue(window.location.search.substring(1));
-  const currentKiosk = currentParams.kiosk;
-  const hasKioskInCurrentUrl = currentKiosk !== undefined
-    && currentKiosk !== null
-    && currentKiosk !== false;
-  if (!hasKioskInCurrentUrl) {
+  const currentKiosk = new URLSearchParams(window.location.search).get('kiosk');
+  if (currentKiosk === null) {
     return href;
   }
-
-  const kioskValue = typeof currentKiosk === 'string'
-    ? currentKiosk
-    : String(currentKiosk);
 
   const hashIndex = href.indexOf('#');
 
@@ -511,7 +502,7 @@ function preserveKioskModeInDataLink(href: string): string {
     ? ''
     : hrefWithoutHash.includes('?') ? '&' : '?';
 
-  return `${hrefWithoutHash}${separator}kiosk=${encodeURIComponent(kioskValue)}${hash}`;
+  return `${hrefWithoutHash}${separator}kiosk=${encodeURIComponent(currentKiosk)}${hash}`;
 }
 
 function isHashOrProtocolRelativeHref(href: string): boolean {
