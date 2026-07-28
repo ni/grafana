@@ -1286,10 +1286,10 @@ describe('getLinksSupplier', () => {
       expectedHref: 'about:blank',
     },
     {
-      title: 'when user is not in kiosk mode, clicked link is not modified',
-      currentUrl: '/d/source?orgId=1',
-      linkUrl: '/d/target?orgId=1',
-      expectedHref: '/d/target?orgId=1',
+      title: 'when user clicks an external absolute link, kiosk is not appended',
+      currentUrl: '/d/source?kiosk=true',
+      linkUrl: 'https://example.com/target?orgId=1',
+      expectedHref: 'https://example.com/target?orgId=1',
     },
     {
       title: 'when destination link already defines kiosk mode, user click keeps destination kiosk value',
@@ -1298,12 +1298,11 @@ describe('getLinksSupplier', () => {
       expectedHref: '/d/target?kiosk=embed',
     },
     {
-      title: 'when user clicks an external absolute link, kiosk is not appended',
-      currentUrl: '/d/source?kiosk=true',
-      linkUrl: 'https://example.com/target?orgId=1',
-      expectedHref: 'https://example.com/target?orgId=1',
+      title: 'when user is not in kiosk mode, clicked link is not modified',
+      currentUrl: '/d/source?orgId=1',
+      linkUrl: '/d/target?orgId=1',
+      expectedHref: '/d/target?orgId=1',
     },
-    // Successful kiosk preservation cases
     {
       title: 'when user is in kiosk mode and clicks a same-origin absolute link, kiosk is preserved',
       currentUrl: '/d/source?kiosk=embed',

@@ -481,7 +481,6 @@ function preserveKioskModeInDataLink(href: string): string {
     return href;
   }
 
-
   const linkAlreadyDefinesKiosk = parsedHref.searchParams.has('kiosk');
   if (linkAlreadyDefinesKiosk) {
     return href;
