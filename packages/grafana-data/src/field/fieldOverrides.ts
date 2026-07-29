@@ -508,12 +508,13 @@ function isHashOrProtocolRelativeHref(href: string): boolean {
 }
 
 function isNonNavigableSchemeHref(href: string): boolean {
-  const lowerHref = href.toLowerCase();
-  const isMailtoLink = lowerHref.startsWith('mailto:');
-  const isTelLink = lowerHref.startsWith('tel:');
-  const isJavascriptPseudoLink = lowerHref.startsWith('javascript:');
-
-  return isMailtoLink || isTelLink || isJavascriptPseudoLink;
+  try {
+    const scheme = new URL(href).protocol;
+    return scheme === 'mailto:' || scheme === 'tel:' || scheme === 'javascript:';
+  } catch {
+    // Relative URLs don't have these schemes
+    return false;
+  }
 }
 
 function isExternalAbsoluteUrl(href: string): boolean {
