@@ -486,10 +486,7 @@ function preserveKioskModeInDataLink(href: string): string {
   }
 
   const currentKiosk = new URLSearchParams(window.location.search).get('kiosk');
-  if (
-    currentKiosk === null
-    || !['true', 'embed'].includes(currentKiosk)
-  ) {
+  if (!currentKiosk || !isAlphanumericValue(currentKiosk)) {
     return href;
   }
 
@@ -526,6 +523,10 @@ function isExternalAbsoluteUrl(href: string): boolean {
   } catch {
     return false;
   }
+}
+
+function isAlphanumericValue(value: string): boolean {
+  return /^[a-zA-Z0-9_-]{1,50}$/.test(value);
 }
 
 export const getLinksSupplier =
