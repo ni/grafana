@@ -447,7 +447,7 @@ const defaultInternalLinkPostProcessor: DataLinkPostProcessor = (options) => {
   const { link, linkModel, dataLinkScopedVars, field, replaceVariables } = options;
 
   if (link.internal) {
-    return mapInternalLinkToExplore({
+    const exploreLink = mapInternalLinkToExplore({
       link,
       internalLink: link.internal,
       scopedVars: dataLinkScopedVars,
@@ -455,10 +455,88 @@ const defaultInternalLinkPostProcessor: DataLinkPostProcessor = (options) => {
       range: link.internal.range,
       replaceVariables,
     });
+    exploreLink.href = preserveKioskModeInDataLink(exploreLink.href);
+    return exploreLink;
   } else {
     return linkModel;
   }
 };
+
+function preserveKioskModeInDataLink(href: string): string {
+  // Early return for non-browser environments
+  if (typeof window === 'undefined' || !href) {
+    return href;
+  }
+
+  // Skip URLs that shouldn't be modified
+  if (
+    isHashOrProtocolRelativeHref(href) ||
+    isNonNavigableSchemeHref(href) ||
+    isExternalAbsoluteUrl(href)
+  ) {
+    return href;
+  }
+
+  // Parse and validate the href
+  let parsedHref: URL;
+  try {
+    parsedHref = new URL(href, window.location.origin);
+  } catch {
+    return href;
+  }
+
+  // Skip if destination already has kiosk parameter
+  if (parsedHref.searchParams.has('kiosk')) {
+    return href;
+  }
+
+  // Get current kiosk value from the page URL
+  let currentKiosk: string | null = null;
+  try {
+    currentKiosk = new URLSearchParams(window.location.search).get('kiosk');
+  } catch {
+    return href;
+  }
+
+  if (!currentKiosk) {
+    return href;
+  }
+
+  // Build new URL with kiosk parameter
+  const hashIndex = href.indexOf('#');
+  const hrefWithoutHash = hashIndex >= 0 ? href.slice(0, hashIndex) : href;
+  const hash = hashIndex >= 0 ? href.slice(hashIndex) : '';
+  const separator = hrefWithoutHash.includes('?') ? '&' : '?';
+
+  // Safely build the URL with encoded parameter
+  const kioskParam = `kiosk=${encodeURIComponent(currentKiosk)}`;
+  return `${hrefWithoutHash}${separator}${kioskParam}${hash}`;
+}
+
+function isHashOrProtocolRelativeHref(href: string): boolean {
+  const isHashOnlyLink = href.startsWith('#');
+  const isProtocolRelativeLink = href.startsWith('//');
+  return isHashOnlyLink || isProtocolRelativeLink;
+}
+
+function isNonNavigableSchemeHref(href: string): boolean {
+  try {
+    const scheme = new URL(href).protocol;
+    return scheme === 'mailto:' || scheme === 'tel:' || scheme === 'javascript:';
+  } catch {
+    return false;
+  }
+}
+
+function isExternalAbsoluteUrl(href: string): boolean {
+  try {
+    const absoluteUrl = new URL(href);
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    return origin ? absoluteUrl.origin !== origin : false;
+  } catch {
+    return false;
+  }
+}
 
 export const getLinksSupplier =
   (
@@ -506,7 +584,7 @@ export const getLinksSupplier =
         href = replaceVariables(href, dataLinkScopedVars, VariableFormatID.UriEncode);
 
         if (href?.length > 0) {
-          href = locationUtil.processUrl(href);
+          href = preserveKioskModeInDataLink(locationUtil.processUrl(href));
         }
       }
 
