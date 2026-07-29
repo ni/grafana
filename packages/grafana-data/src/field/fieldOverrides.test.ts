@@ -1322,6 +1322,13 @@ describe('getLinksSupplier', () => {
       linkUrl: '/d/target?orgId=1#panel-5',
       expectedHref: '/d/target?orgId=1&kiosk=embed#panel-5',
     },
+    {
+      title:
+        'when destination query contains special characters, link values are encoded and kiosk is preserved',
+      currentUrl: '/d/source?kiosk=embed',
+      linkUrl: '/d/target?query=hello%20world&path=a%2Fb#panel-5',
+      expectedHref: '/d/target?query=hello%20world&path=a%2Fb&kiosk=embed#panel-5',
+    },
   ];
 
   const replaceIdentity: InterpolateFunction = (value) => value;

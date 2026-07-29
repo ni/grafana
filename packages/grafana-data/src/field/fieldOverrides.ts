@@ -485,7 +485,7 @@ function preserveKioskModeInDataLink(href: string): string {
   }
 
   const currentKiosk = new URLSearchParams(window.location.search).get('kiosk');
-  if (!currentKiosk || !isAlphanumericValue(currentKiosk)) {
+  if (!currentKiosk || !isValidKioskMode(currentKiosk)) {
     return href;
   }
 
@@ -528,8 +528,9 @@ function isExternalAbsoluteUrl(href: string): boolean {
   }
 }
 
-function isAlphanumericValue(value: string): boolean {
-  return /^[a-zA-Z0-9_-]{1,50}$/.test(value);
+function isValidKioskMode(kiosk: string): boolean {
+  const validKioskModes = ['tv', 'embed', 'full', 'true', '1'];
+  return validKioskModes.includes(kiosk);
 }
 
 export const getLinksSupplier =
