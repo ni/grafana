@@ -488,7 +488,7 @@ function preserveKioskModeInDataLink(href: string): string {
   const currentKiosk = new URLSearchParams(window.location.search).get('kiosk');
   if (
     currentKiosk === null
-    || ['true', 'embed'].includes(currentKiosk)
+    || !['true', 'embed'].includes(currentKiosk)
   ) {
     return href;
   }
@@ -574,7 +574,8 @@ export const getLinksSupplier =
         href = replaceVariables(href, dataLinkScopedVars, VariableFormatID.UriEncode);
 
         if (href?.length > 0) {
-          href = preserveKioskModeInDataLink(locationUtil.processUrl(href));
+          href = locationUtil.processUrl(href);
+          href = preserveKioskModeInDataLink(href);
         }
       }
 
