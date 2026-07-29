@@ -486,7 +486,10 @@ function preserveKioskModeInDataLink(href: string): string {
   }
 
   const currentKiosk = new URLSearchParams(window.location.search).get('kiosk');
-  if (currentKiosk === null) {
+  if (
+    currentKiosk === null
+    || ['true', 'embed'].includes(currentKiosk)
+  ) {
     return href;
   }
 
