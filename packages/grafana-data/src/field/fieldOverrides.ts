@@ -512,7 +512,6 @@ function isNonNavigableSchemeHref(href: string): boolean {
     const scheme = new URL(href).protocol;
     return scheme === 'mailto:' || scheme === 'tel:' || scheme === 'javascript:';
   } catch {
-    // Relative URLs don't have these schemes
     return false;
   }
 }
