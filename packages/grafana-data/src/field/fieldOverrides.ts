@@ -492,7 +492,7 @@ function preserveKioskModeInDataLink(href: string): string {
      * Without this check, unsanitized input from window.location flows into the returned URL,
      * which Snyk flags as a ReDoS/injection risk.
      */
-    !['tv', 'embed', 'full', 'true', '1'].includes(currentKiosk)
+    !['embed', 'true', '1'].includes(currentKiosk)
   ) {
     return href;
   }
