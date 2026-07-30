@@ -1304,6 +1304,18 @@ describe('getLinksSupplier', () => {
       expectedHref: '/d/target?orgId=1',
     },
     {
+      title: 'when kiosk param has an unrecognized value, clicked link is not modified',
+      currentUrl: '/d/source?kiosk=unknown',
+      linkUrl: '/d/target?orgId=1',
+      expectedHref: '/d/target?orgId=1',
+    },
+    {
+      title: 'when kiosk param contains a script injection attempt, clicked link is not modified',
+      currentUrl: '/d/source?kiosk=<script>alert(1)</script>',
+      linkUrl: '/d/target?orgId=1',
+      expectedHref: '/d/target?orgId=1',
+    },
+    {
       title: 'when user is in kiosk mode and clicks a same-origin absolute link, kiosk is preserved',
       currentUrl: '/d/source?kiosk=embed',
       linkUrl: 'http://localhost/d/target?orgId=1',
