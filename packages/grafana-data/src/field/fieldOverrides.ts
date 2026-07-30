@@ -486,13 +486,13 @@ function preserveKioskModeInDataLink(href: string): string {
 
   const currentKiosk = new URLSearchParams(window.location.search).get('kiosk');
   if (
-    !currentKiosk
+    !currentKiosk ||
     /*
-    * The following are the valid kiosk values accepted by Grafana's router (KioskMode enum).
-    * Without this check, unsanitized input from window.location flows into the returned URL,
-    * which Snyk flags as a ReDoS/injection risk.
-    */
-    || !['tv', 'embed', 'full', 'true', '1'].includes(currentKiosk)
+     * The following are the valid kiosk values accepted by Grafana's router (KioskMode enum).
+     * Without this check, unsanitized input from window.location flows into the returned URL,
+     * which Snyk flags as a ReDoS/injection risk.
+     */
+    !['tv', 'embed', 'full', 'true', '1'].includes(currentKiosk)
   ) {
     return href;
   }
