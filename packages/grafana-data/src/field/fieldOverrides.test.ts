@@ -1114,6 +1114,51 @@ describe('getLinksSupplier', () => {
     );
   });
 
+  it('appends kiosk param to internal (Explore) links when user is in kiosk mode', () => {
+    locationUtil.initialize({
+      config: { appSubUrl: '' } as GrafanaConfig,
+      getVariablesUrlParams: () => ({}),
+      getTimeRangeForUrl: () => ({ from: 'now-7d', to: 'now' }),
+    });
+    window.history.replaceState({}, '', '/d/source?kiosk=embed');
+
+    const datasourceUid = '1234';
+    const f0 = createDataFrame({
+      name: 'A',
+      fields: [
+        {
+          name: 'message',
+          type: FieldType.string,
+          values: [10, 20],
+          config: {
+            links: [
+              {
+                url: '',
+                title: '',
+                internal: {
+                  datasourceUid: datasourceUid,
+                  datasourceName: 'testDS',
+                  query: '12345',
+                },
+              },
+            ],
+          },
+          display: (v) => ({ numeric: Number(v), text: String(v) }),
+        },
+      ],
+    });
+
+    const supplier = getLinksSupplier(f0, f0.fields[0], {}, (value) => value);
+    const links = supplier({ valueRowIndex: 0 });
+
+    const encodeURIParams = `{"datasource":"${datasourceUid}","queries":["12345"]}`;
+    const baseHref = `/explore?left=${encodeURIComponent(encodeURIParams)}`;
+    expect(links.length).toBe(1);
+    expect(links[0].href).toBe(`${baseHref}&kiosk=embed`);
+
+    window.history.replaceState({}, '', '/');
+  });
+
   describe('dynamic links', () => {
     beforeEach(() => {
       locationUtil.initialize({
