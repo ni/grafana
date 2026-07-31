@@ -1253,6 +1253,233 @@ describe('getLinksSupplier', () => {
     // check that onClick variable replacer has scoped vars bound to it
     expect(replaceSpy.mock.calls[1][1]).toHaveProperty('foo', { text: 'bar', value: 'bar' });
   });
+
+  const kioskLinkCases = [
+    {
+      title: 'when user clicks a hash-only link, kiosk logic does not modify it',
+      currentUrl: '/d/source?kiosk=embed',
+      linkUrl: '#panel-5',
+      expectedHref: '#panel-5',
+    },
+    {
+      title: 'when user clicks a protocol-relative link, kiosk logic does not modify it',
+      currentUrl: '/d/source?kiosk=embed',
+      linkUrl: '//cdn.example.com/path',
+      expectedHref: '//cdn.example.com/path',
+    },
+    {
+      title: 'when user clicks a mailto link, kiosk logic does not modify it',
+      currentUrl: '/d/source?kiosk=embed',
+      linkUrl: 'mailto:test@example.com',
+      expectedHref: 'mailto:test@example.com',
+    },
+    {
+      title: 'when user clicks a tel link, kiosk logic does not modify it',
+      currentUrl: '/d/source?kiosk=embed',
+      linkUrl: 'tel:+1234567890',
+      expectedHref: 'tel:+1234567890',
+    },
+    {
+      title: 'when user clicks a javascript pseudo-link, sanitized href is not modified by kiosk logic',
+      currentUrl: '/d/source?kiosk=embed',
+      linkUrl: 'javascript:void(0)',
+      expectedHref: 'about:blank',
+    },
+    {
+      title: 'when user clicks an external absolute link, kiosk is not appended',
+      currentUrl: '/d/source?kiosk=true',
+      linkUrl: 'https://example.com/target?orgId=1',
+      expectedHref: 'https://example.com/target?orgId=1',
+    },
+    {
+      title: 'when destination link already defines kiosk mode, user click keeps destination kiosk value',
+      currentUrl: '/d/source?kiosk=true',
+      linkUrl: '/d/target?kiosk=embed',
+      expectedHref: '/d/target?kiosk=embed',
+    },
+    {
+      title: 'when user is not in kiosk mode, clicked link is not modified',
+      currentUrl: '/d/source?orgId=1',
+      linkUrl: '/d/target?orgId=1',
+      expectedHref: '/d/target?orgId=1',
+    },
+    {
+      title: 'when kiosk param has an unrecognized value, clicked link is not modified',
+      currentUrl: '/d/source?kiosk=unknown',
+      linkUrl: '/d/target?orgId=1',
+      expectedHref: '/d/target?orgId=1',
+    },
+    {
+      title: 'when kiosk param contains a script injection attempt, clicked link is not modified',
+      currentUrl: '/d/source?kiosk=<script>alert(1)</script>',
+      linkUrl: '/d/target?orgId=1',
+      expectedHref: '/d/target?orgId=1',
+    },
+    {
+      title: 'when user is in kiosk mode and clicks a same-origin absolute link, kiosk is preserved',
+      currentUrl: '/d/source?kiosk=embed',
+      linkUrl: 'http://localhost/d/target?orgId=1',
+      expectedHref: 'http://localhost/d/target?orgId=1&kiosk=embed',
+    },
+    {
+      title: 'when user is in kiosk mode and clicks a relative dashboard link, kiosk is preserved',
+      currentUrl: '/d/source?kiosk=embed',
+      linkUrl: '/d/target?orgId=1',
+      expectedHref: '/d/target?orgId=1&kiosk=embed',
+    },
+    {
+      title:
+        'when user is in kiosk mode and clicks a relative dashboard link with hash, kiosk is added and hash is preserved',
+      currentUrl: '/d/source?kiosk=embed',
+      linkUrl: '/d/target?orgId=1#panel-5',
+      expectedHref: '/d/target?orgId=1&kiosk=embed#panel-5',
+    },
+    {
+      title: 'when destination query contains special characters, link values are encoded and kiosk is preserved',
+      currentUrl: '/d/source?kiosk=embed',
+      linkUrl: '/d/target?query=hello%20world&path=a%2Fb#panel-5',
+      expectedHref: '/d/target?query=hello%20world&path=a%2Fb&kiosk=embed#panel-5',
+    },
+  ];
+
+  const replaceIdentity: InterpolateFunction = (value) => value;
+  describe('kiosk mode preservation', () => {
+    beforeEach(() => {
+      locationUtil.initialize({
+        config: { appSubUrl: '' } as GrafanaConfig,
+        getVariablesUrlParams: jest.fn(),
+        getTimeRangeForUrl: jest.fn(),
+      });
+    });
+
+    afterEach(() => {
+      locationUtil.initialize({
+        config: { appSubUrl: '/subUrl' } as GrafanaConfig,
+        getVariablesUrlParams: jest.fn(),
+        getTimeRangeForUrl: jest.fn(),
+      });
+    });
+
+    it.each(kioskLinkCases)('$title', ({ currentUrl, linkUrl, expectedHref }) => {
+      window.history.replaceState({}, '', currentUrl);
+
+      const dataframe = createDataFrame({
+        name: 'A',
+        fields: [
+          {
+            name: 'message',
+            type: FieldType.string,
+            config: {
+              links: [
+                {
+                  url: linkUrl,
+                  title: 'target',
+                },
+              ],
+            },
+          },
+        ],
+      });
+
+      const supplier = getLinksSupplier(dataframe, dataframe.fields[0], {}, replaceIdentity);
+      const links = supplier({});
+
+      expect(links).toHaveLength(1);
+      expect(links[0].href).toBe(expectedHref);
+    });
+  });
+
+  const exploreModeKioskLinkCases = [
+    {
+      title: 'when user is in embed kiosk mode, kiosk is preserved in Explore link',
+      currentUrl: '/d/source?kiosk=embed',
+      expectedKiosk: 'embed',
+    },
+    {
+      title: 'when user is in full kiosk mode, kiosk is preserved in Explore link',
+      currentUrl: '/d/source?kiosk=true',
+      expectedKiosk: 'true',
+    },
+    {
+      title: 'when user is in legacy full kiosk mode (kiosk=1), kiosk is preserved in Explore link',
+      currentUrl: '/d/source?kiosk=1',
+      expectedKiosk: '1',
+    },
+    {
+      title: 'when user is not in kiosk mode, Explore link is not modified',
+      currentUrl: '/d/source?orgId=1',
+      expectedKiosk: null,
+    },
+    {
+      title: 'when kiosk param has an unrecognized value, Explore link is not modified',
+      currentUrl: '/d/source?kiosk=unknown',
+      expectedKiosk: null,
+    },
+    {
+      title: 'when kiosk param contains a script injection attempt, Explore link is not modified',
+      currentUrl: '/d/source?kiosk=<script>alert(1)</script>',
+      expectedKiosk: null,
+    },
+  ];
+
+  describe('kiosk mode preservation for internal (Explore) links', () => {
+    const datasourceUid = '1234';
+    const encodeURIParams = `{"datasource":"${datasourceUid}","queries":["12345"]}`;
+    const baseHref = `/explore?left=${encodeURIComponent(encodeURIParams)}`;
+    let dataframe: ReturnType<typeof createDataFrame>;
+
+    beforeEach(() => {
+      locationUtil.initialize({
+        config: { appSubUrl: '' } as GrafanaConfig,
+        getVariablesUrlParams: () => ({}),
+        getTimeRangeForUrl: () => ({ from: 'now-7d', to: 'now' }),
+      });
+      dataframe = createDataFrame({
+        name: 'A',
+        fields: [
+          {
+            name: 'message',
+            type: FieldType.string,
+            values: [10, 20],
+            config: {
+              links: [
+                {
+                  url: '',
+                  title: '',
+                  internal: {
+                    datasourceUid,
+                    datasourceName: 'testDS',
+                    query: '12345',
+                  },
+                },
+              ],
+            },
+            display: (v) => ({ numeric: Number(v), text: String(v) }),
+          },
+        ],
+      });
+    });
+
+    afterEach(() => {
+      window.history.replaceState({}, '', '/');
+      locationUtil.initialize({
+        config: { appSubUrl: '/subUrl' } as GrafanaConfig,
+        getVariablesUrlParams: jest.fn(),
+        getTimeRangeForUrl: jest.fn(),
+      });
+    });
+
+    it.each(exploreModeKioskLinkCases)('$title', ({ currentUrl, expectedKiosk }) => {
+      window.history.replaceState({}, '', currentUrl);
+      const supplier = getLinksSupplier(dataframe, dataframe.fields[0], {}, (value) => value);
+      const expectedHref = expectedKiosk ? `${baseHref}&kiosk=${expectedKiosk}` : baseHref;
+
+      const links = supplier({ valueRowIndex: 0 });
+
+      expect(links).toHaveLength(1);
+      expect(links[0].href).toBe(expectedHref);
+    });
+  });
 });
 
 describe('applyRawFieldOverrides', () => {
