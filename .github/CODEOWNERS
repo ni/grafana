@@ -1,4 +1,3 @@
 * @ni/grafana-codeowners-team
 
-/.snyk @ni/security-scanning-owners
 /.wiz @ni/security-scanning-owners
