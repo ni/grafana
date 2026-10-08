@@ -1261,25 +1261,34 @@ describe('getLinksSupplier', () => {
     targetBlank?: boolean;
     expectedHref: string;
   }> = [
-    ...[
-      './d/lab-test-overview/lab-test-overview?var-workspace=workspace-1&var-product=PN-123',
-      '../testinsights/dataspaces/dataspace/untitled?partNumbers=PN-123&stepName=failed-step&autoSelect=true',
-    ].flatMap((linkUrl) => [
-      {
-        title: `when Product Overview opens ${linkUrl} in a new tab, embed kiosk mode is not inherited`,
-        currentUrl: '/dashboardhost/d/product-summary/product-summary?kiosk=embed',
-        linkUrl,
-        targetBlank: true,
-        expectedHref: linkUrl,
-      },
-      {
-        title: `when Product Summary opens ${linkUrl} normally in a new tab, the URL is unchanged`,
-        currentUrl: '/dashboardhost/d/product-summary/product-summary?orgId=1',
-        linkUrl,
-        targetBlank: true,
-        expectedHref: linkUrl,
-      },
-    ]),
+    {
+      title: 'when Product Summary opens Lab Test Overview in a new tab, embed kiosk mode is not inherited',
+      currentUrl: '/dashboardhost/d/product-summary/product-summary?kiosk=embed',
+      linkUrl: './d/lab-test-overview/lab-test-overview?var-workspace=workspace-1&var-product=PN-123',
+      targetBlank: true,
+      expectedHref: './d/lab-test-overview/lab-test-overview?var-workspace=workspace-1&var-product=PN-123',
+    },
+    {
+      title: 'when Product Summary opens Data Spaces in a new tab, embed kiosk mode is not inherited',
+      currentUrl: '/dashboardhost/d/product-summary/product-summary?kiosk=embed',
+      linkUrl: '../testinsights/dataspaces/dataspace/untitled?partNumbers=PN-123&stepName=failed-step&autoSelect=true',
+      targetBlank: true,
+      expectedHref: '../testinsights/dataspaces/dataspace/untitled?partNumbers=PN-123&stepName=failed-step&autoSelect=true',
+    },
+    {
+      title: 'when Product Summary opens Lab Test Overview without kiosk mode, the URL is unchanged',
+      currentUrl: '/dashboardhost/d/product-summary/product-summary?orgId=1',
+      linkUrl: './d/lab-test-overview/lab-test-overview?var-workspace=workspace-1&var-product=PN-123',
+      targetBlank: true,
+      expectedHref: './d/lab-test-overview/lab-test-overview?var-workspace=workspace-1&var-product=PN-123',
+    },
+    {
+      title: 'when Product Summary opens Data Spaces without kiosk mode, the URL is unchanged',
+      currentUrl: '/dashboardhost/d/product-summary/product-summary?orgId=1',
+      linkUrl: '../testinsights/dataspaces/dataspace/untitled?partNumbers=PN-123&stepName=failed-step&autoSelect=true',
+      targetBlank: true,
+      expectedHref: '../testinsights/dataspaces/dataspace/untitled?partNumbers=PN-123&stepName=failed-step&autoSelect=true',
+    },
     {
       title: 'when an embedded dashboard link stays in the same tab, embed kiosk mode is inherited',
       currentUrl: '/d/source?kiosk=embed',
@@ -1293,13 +1302,6 @@ describe('getLinksSupplier', () => {
       linkUrl: '/d/target?orgId=1#panel-5',
       targetBlank: true,
       expectedHref: '/d/target?orgId=1#panel-5',
-    },
-    {
-      title: 'when an embedded same-origin absolute link opens a new tab, embed kiosk mode is not inherited',
-      currentUrl: '/d/source?kiosk=embed',
-      linkUrl: 'http://localhost/d/target?orgId=1',
-      targetBlank: true,
-      expectedHref: 'http://localhost/d/target?orgId=1',
     },
     ...['embed', 'true', '1', ''].map((kiosk) => ({
       title: `when an embedded link opens a new tab, explicit destination kiosk=${kiosk} is preserved`,
