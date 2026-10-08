@@ -455,14 +455,14 @@ const defaultInternalLinkPostProcessor: DataLinkPostProcessor = (options) => {
       range: link.internal.range,
       replaceVariables,
     });
-    exploreLink.href = preserveKioskModeInDataLink(exploreLink.href);
+    exploreLink.href = preserveKioskModeInDataLink(exploreLink.href, exploreLink.target === '_blank');
     return exploreLink;
   } else {
     return linkModel;
   }
 };
 
-function preserveKioskModeInDataLink(href: string): string {
+function preserveKioskModeInDataLink(href: string, targetBlank?: boolean): string {
   if (
     isNonBrowserEnvironment() ||
     isHashOrProtocolRelativeHref(href) ||
@@ -487,6 +487,7 @@ function preserveKioskModeInDataLink(href: string): string {
   const currentKiosk = new URLSearchParams(window.location.search).get('kiosk');
   if (
     !currentKiosk ||
+    (currentKiosk === 'embed' && targetBlank) ||
     /*
      * The following are the valid kiosk values accepted by Grafana's router (KioskMode enum).
      * Without this check, unsanitized input from window.location flows into the returned URL,
@@ -583,7 +584,7 @@ export const getLinksSupplier =
 
         if (href?.length > 0) {
           href = locationUtil.processUrl(href);
-          href = preserveKioskModeInDataLink(href);
+          href = preserveKioskModeInDataLink(href, link.targetBlank);
         }
       }
 
