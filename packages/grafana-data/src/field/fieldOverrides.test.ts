@@ -1273,7 +1273,8 @@ describe('getLinksSupplier', () => {
       currentUrl: '/dashboardhost/d/product-summary/product-summary?kiosk=embed',
       linkUrl: '../testinsights/dataspaces/dataspace/untitled?partNumbers=PN-123&stepName=failed-step&autoSelect=true',
       targetBlank: true,
-      expectedHref: '../testinsights/dataspaces/dataspace/untitled?partNumbers=PN-123&stepName=failed-step&autoSelect=true',
+      expectedHref:
+        '../testinsights/dataspaces/dataspace/untitled?partNumbers=PN-123&stepName=failed-step&autoSelect=true',
     },
     {
       title: 'when Product Summary opens Lab Test Overview without kiosk mode, the URL is unchanged',
@@ -1287,7 +1288,8 @@ describe('getLinksSupplier', () => {
       currentUrl: '/dashboardhost/d/product-summary/product-summary?orgId=1',
       linkUrl: '../testinsights/dataspaces/dataspace/untitled?partNumbers=PN-123&stepName=failed-step&autoSelect=true',
       targetBlank: true,
-      expectedHref: '../testinsights/dataspaces/dataspace/untitled?partNumbers=PN-123&stepName=failed-step&autoSelect=true',
+      expectedHref:
+        '../testinsights/dataspaces/dataspace/untitled?partNumbers=PN-123&stepName=failed-step&autoSelect=true',
     },
     {
       title: 'when an embedded dashboard link stays in the same tab, embed kiosk mode is inherited',
