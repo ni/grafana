@@ -5,6 +5,8 @@ import { ReplaySubject } from 'rxjs';
 
 import { EventBusSrv, getDefaultTimeRange, LoadingState, PanelData, PanelPlugin } from '@grafana/data';
 import { selectors } from '@grafana/e2e-selectors';
+import { locationService } from '@grafana/runtime';
+import { InspectTab } from 'app/features/inspector/types';
 
 import { PanelQueryRunner } from '../../query/state/PanelQueryRunner';
 import { setTimeSrv, TimeSrv } from '../services/TimeSrv';
@@ -104,6 +106,59 @@ describe('PanelStateWrapper', () => {
   });
 
   describe('when there are error(s)', () => {
+    afterEach(() => {
+      locationService.push('/');
+    });
+
+    it.each([
+      { kiosk: 'embed', shouldInspect: false },
+      { kiosk: undefined, shouldInspect: true },
+      { kiosk: 'true', shouldInspect: true },
+      { kiosk: '1', shouldInspect: true },
+    ])('only blocks error inspection in embed mode (kiosk=$kiosk)', async ({ kiosk, shouldInspect }) => {
+      locationService.push(kiosk ? `/d/test/dashboard?kiosk=${kiosk}` : '/d/test/dashboard');
+      const { rerender, props, subject, store } = setupTestContext({});
+
+      act(() => {
+        subject.next({
+          state: LoadingState.Error,
+          series: [],
+          errors: [{ message: 'boom!' }],
+          timeRange: getDefaultTimeRange(),
+        });
+      });
+
+      rerender(
+        <Provider store={store}>
+          <PanelStateWrapper {...props} isInView={true} />
+        </Provider>
+      );
+
+      const button = screen.getByTestId(selectors.components.Panels.Panel.status('error'));
+      fireEvent.click(button);
+
+      if (shouldInspect) {
+        expect(locationService.getSearchObject()).toMatchObject({ inspect: '123', inspectTab: InspectTab.Error });
+      } else {
+        expect(locationService.getSearchObject()).not.toHaveProperty('inspect');
+        expect(locationService.getSearchObject()).not.toHaveProperty('inspectTab');
+      }
+
+      fireEvent.focus(button);
+      expect(await screen.findByText('boom!')).toBeInTheDocument();
+
+      if (kiosk === 'embed') {
+        locationService.partial({ kiosk: null });
+        fireEvent.click(button);
+        expect(locationService.getSearchObject()).toMatchObject({ inspect: '123', inspectTab: InspectTab.Error });
+
+        locationService.partial({ kiosk: 'embed', inspect: null, inspectTab: null });
+        fireEvent.click(button);
+        expect(locationService.getSearchObject()).not.toHaveProperty('inspect');
+        expect(locationService.getSearchObject()).not.toHaveProperty('inspectTab');
+      }
+    });
+
     [
       { errors: [{ message: 'boom!' }], expectedMessage: 'boom!' },
       {
