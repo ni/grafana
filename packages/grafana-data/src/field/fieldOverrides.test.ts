@@ -1254,7 +1254,69 @@ describe('getLinksSupplier', () => {
     expect(replaceSpy.mock.calls[1][1]).toHaveProperty('foo', { text: 'bar', value: 'bar' });
   });
 
-  const kioskLinkCases = [
+  const kioskLinkCases: Array<{
+    title: string;
+    currentUrl: string;
+    linkUrl: string;
+    targetBlank?: boolean;
+    expectedHref: string;
+  }> = [
+    {
+      title: 'when a dashboard-relative link opens a new tab, embed kiosk mode is not inherited',
+      currentUrl: '/d/source?kiosk=embed',
+      linkUrl: './d/target?orgId=1',
+      targetBlank: true,
+      expectedHref: './d/target?orgId=1',
+    },
+    {
+      title: 'when a parent-relative link opens a new tab, embed kiosk mode is not inherited',
+      currentUrl: '/d/source?kiosk=embed',
+      linkUrl: '../app/details?item=123',
+      targetBlank: true,
+      expectedHref: '../app/details?item=123',
+    },
+    {
+      title: 'when a dashboard-relative link opens a new tab without kiosk mode, the URL is unchanged',
+      currentUrl: '/d/source?orgId=1',
+      linkUrl: './d/target?orgId=1',
+      targetBlank: true,
+      expectedHref: './d/target?orgId=1',
+    },
+    {
+      title: 'when a parent-relative link opens a new tab without kiosk mode, the URL is unchanged',
+      currentUrl: '/d/source?orgId=1',
+      linkUrl: '../app/details?item=123',
+      targetBlank: true,
+      expectedHref: '../app/details?item=123',
+    },
+    {
+      title: 'when an embedded dashboard link stays in the same tab, embed kiosk mode is inherited',
+      currentUrl: '/d/source?kiosk=embed',
+      linkUrl: './d/target?orgId=1',
+      targetBlank: false,
+      expectedHref: './d/target?orgId=1&kiosk=embed',
+    },
+    {
+      title: 'when an embedded dashboard link opens a new tab, embed kiosk mode is not inherited',
+      currentUrl: '/d/source?kiosk=embed',
+      linkUrl: '/d/target?orgId=1#panel-5',
+      targetBlank: true,
+      expectedHref: '/d/target?orgId=1#panel-5',
+    },
+    ...['embed', 'true', '1', ''].map((kiosk) => ({
+      title: `when an embedded link opens a new tab, explicit destination kiosk=${kiosk} is preserved`,
+      currentUrl: '/d/source?kiosk=embed',
+      linkUrl: `/d/target?kiosk=${kiosk}`,
+      targetBlank: true,
+      expectedHref: `/d/target?kiosk=${kiosk}`,
+    })),
+    ...['true', '1'].map((kiosk) => ({
+      title: `when a link opens a new tab, full kiosk mode ${kiosk} is still inherited`,
+      currentUrl: `/d/source?kiosk=${kiosk}`,
+      linkUrl: '/d/target',
+      targetBlank: true,
+      expectedHref: `/d/target?kiosk=${kiosk}`,
+    })),
     {
       title: 'when user clicks a hash-only link, kiosk logic does not modify it',
       currentUrl: '/d/source?kiosk=embed',
@@ -1360,7 +1422,7 @@ describe('getLinksSupplier', () => {
       });
     });
 
-    it.each(kioskLinkCases)('$title', ({ currentUrl, linkUrl, expectedHref }) => {
+    it.each(kioskLinkCases)('$title', ({ currentUrl, linkUrl, expectedHref, targetBlank }) => {
       window.history.replaceState({}, '', currentUrl);
 
       const dataframe = createDataFrame({
@@ -1374,6 +1436,7 @@ describe('getLinksSupplier', () => {
                 {
                   url: linkUrl,
                   title: 'target',
+                  targetBlank,
                 },
               ],
             },
@@ -1386,10 +1449,23 @@ describe('getLinksSupplier', () => {
 
       expect(links).toHaveLength(1);
       expect(links[0].href).toBe(expectedHref);
+      expect(links[0].target).toBe(targetBlank ? '_blank' : undefined);
     });
   });
 
   const exploreModeKioskLinkCases = [
+    {
+      title: 'when an embedded Explore link opens a new tab, embed kiosk mode is not inherited',
+      currentUrl: '/d/source?kiosk=embed',
+      targetBlank: true,
+      expectedKiosk: null,
+    },
+    ...['true', '1'].map((kiosk) => ({
+      title: `when an Explore link opens a new tab, full kiosk mode ${kiosk} is still inherited`,
+      currentUrl: `/d/source?kiosk=${kiosk}`,
+      targetBlank: true,
+      expectedKiosk: kiosk,
+    })),
     {
       title: 'when user is in embed kiosk mode, kiosk is preserved in Explore link',
       currentUrl: '/d/source?kiosk=embed',
@@ -1469,8 +1545,9 @@ describe('getLinksSupplier', () => {
       });
     });
 
-    it.each(exploreModeKioskLinkCases)('$title', ({ currentUrl, expectedKiosk }) => {
+    it.each(exploreModeKioskLinkCases)('$title', ({ currentUrl, expectedKiosk, targetBlank }) => {
       window.history.replaceState({}, '', currentUrl);
+      dataframe.fields[0].config.links![0].targetBlank = targetBlank;
       const supplier = getLinksSupplier(dataframe, dataframe.fields[0], {}, (value) => value);
       const expectedHref = expectedKiosk ? `${baseHref}&kiosk=${expectedKiosk}` : baseHref;
 
@@ -1478,6 +1555,7 @@ describe('getLinksSupplier', () => {
 
       expect(links).toHaveLength(1);
       expect(links[0].href).toBe(expectedHref);
+      expect(links[0].target).toBe(targetBlank ? '_blank' : '_self');
     });
   });
 });
