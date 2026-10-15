@@ -45,6 +45,7 @@ import {
 } from '../../apiserver/types';
 import { DashboardEditPane } from '../edit-pane/DashboardEditPane';
 import { dashboardEditActions } from '../edit-pane/shared';
+import { PanelInspectDrawer } from '../inspect/PanelInspectDrawer';
 import { PanelEditor } from '../panel-edit/PanelEditor';
 import { DashboardSceneChangeTracker } from '../saving/DashboardSceneChangeTracker';
 import { SaveDashboardDrawer } from '../saving/SaveDashboardDrawer';
@@ -584,7 +585,9 @@ export class DashboardScene extends SceneObjectBase<DashboardSceneState> impleme
   }
 
   public showModal(modal: SceneObject) {
-    this.setState({ overlay: modal });
+    if (!(this.state.kioskMode === KioskMode.Embed && modal instanceof PanelInspectDrawer)) {
+      this.setState({ overlay: modal });
+    }
   }
 
   public closeModal() {

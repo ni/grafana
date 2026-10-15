@@ -1,6 +1,6 @@
 import { LoadingState } from '@grafana/data';
 import { getPanelPlugin } from '@grafana/data/test';
-import { config } from '@grafana/runtime';
+import { config, locationService } from '@grafana/runtime';
 import {
   AdHocFiltersVariable,
   behaviors,
@@ -28,6 +28,7 @@ import { SHARED_DASHBOARD_QUERY, DASHBOARD_DATASOURCE_PLUGIN_ID } from 'app/plug
 import { DashboardDataDTO } from 'app/types/dashboard';
 
 import { DashboardDataLayerSet } from '../scene/DashboardDataLayerSet';
+import { DashboardScene } from '../scene/DashboardScene';
 import { LibraryPanelBehavior } from '../scene/LibraryPanelBehavior';
 import { DashboardGridItem } from '../scene/layout-default/DashboardGridItem';
 import { DefaultGridLayoutManager } from '../scene/layout-default/DefaultGridLayoutManager';
@@ -48,6 +49,7 @@ import {
   buildGridItemForPanel,
   transformSaveModelToScene,
   convertOldSnapshotToScenesSnapshot,
+  registerPanelInteractionsReporter,
 } from './transformSaveModelToScene';
 
 describe('transformSaveModelToScene', () => {
@@ -1054,3 +1056,23 @@ function buildGridItemForTest(saveModel: Partial<Panel>): { gridItem: DashboardG
 
   throw new Error('buildGridItemForPanel to return DashboardGridItem');
 }
+
+describe('registerPanelInteractionsReporter', () => {
+  afterEach(() => {
+    locationService.push('/');
+  });
+
+  it.each([{ kiosk: undefined }, { kiosk: 'embed' }, { kiosk: 'true' }, { kiosk: '1' }])(
+    'preserves the existing error-icon behavior (kiosk=$kiosk)',
+    ({ kiosk }) => {
+      locationService.push(kiosk ? `/d/test/dashboard?kiosk=${kiosk}` : '/d/test/dashboard');
+      const panel = new VizPanel({ key: 'panel-1', pluginId: 'timeseries' });
+      const scene = new DashboardScene({ body: DefaultGridLayoutManager.fromVizPanels([panel]) });
+      registerPanelInteractionsReporter(scene);
+
+      panel.onStatusMessageClick();
+
+      expect(scene.state.overlay).toBeUndefined();
+    }
+  );
+});

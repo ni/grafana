@@ -27,15 +27,19 @@ import appEvents from 'app/core/app_events';
 import { LS_PANEL_COPY_KEY } from 'app/core/constants';
 import { AnnoKeyManagerKind, ManagerKind } from 'app/features/apiserver/types';
 import { getDashboardSrv } from 'app/features/dashboard/services/DashboardSrv';
+import { InspectTab } from 'app/features/inspector/types';
 import { dashboardWatcher } from 'app/features/live/dashboard/dashboardWatcher';
 import { DashboardEventAction } from 'app/features/live/dashboard/types';
 import { VariablesChanged } from 'app/features/variables/types';
+import { KioskMode } from 'app/types/dashboard';
 
+import { PanelInspectDrawer } from '../inspect/PanelInspectDrawer';
 import { buildPanelEditScene } from '../panel-edit/PanelEditor';
 import { createWorker } from '../saving/createDetectChangesWorker';
 import { buildGridItemForPanel, transformSaveModelToScene } from '../serialization/transformSaveModelToScene';
 import { DecoratedRevisionModel } from '../settings/VersionsEditView';
 import { historySrv } from '../settings/version-history/HistorySrv';
+import { ShareDrawer } from '../sharing/ShareDrawer/ShareDrawer';
 import { getCloneKey } from '../utils/clone';
 import { dashboardSceneGraph } from '../utils/dashboardSceneGraph';
 import { findVizPanelByKey, getLibraryPanelBehavior, isLibraryPanel } from '../utils/utils';
@@ -95,6 +99,58 @@ const worker = createWorker();
 mockResultsOfDetectChangesWorker({ hasChanges: true });
 
 describe('DashboardScene', () => {
+  describe('Inspect drawers in kiosk mode', () => {
+    it.each([undefined, KioskMode.Full, KioskMode.Embed])(
+      'only blocks Inspect drawers in embed mode (kioskMode=%s)',
+      (kioskMode) => {
+        const scene = buildTestScene({ kioskMode });
+        const panel = new VizPanel({ key: 'panel-1', pluginId: 'timeseries' });
+
+        for (const currentTab of [
+          InspectTab.Data,
+          InspectTab.Stats,
+          InspectTab.Query,
+          InspectTab.JSON,
+          InspectTab.Help,
+        ]) {
+          const drawer = new PanelInspectDrawer({ panelRef: panel.getRef(), currentTab });
+          scene.showModal(drawer);
+          expect(scene.state.overlay).toBe(kioskMode === KioskMode.Embed ? undefined : drawer);
+          scene.closeModal();
+        }
+      }
+    );
+
+    it('does not block unrelated drawers in embed mode or replace an existing overlay', () => {
+      const scene = buildTestScene({ kioskMode: KioskMode.Embed });
+      const shareDrawer = new ShareDrawer({ shareView: 'link' });
+      scene.showModal(shareDrawer);
+      expect(scene.state.overlay).toBe(shareDrawer);
+
+      const panel = new VizPanel({ key: 'panel-1', pluginId: 'timeseries' });
+      scene.showModal(new PanelInspectDrawer({ panelRef: panel.getRef(), currentTab: InspectTab.Data }));
+      expect(scene.state.overlay).toBe(shareDrawer);
+    });
+
+    it('uses the current kiosk mode when opening Inspect', () => {
+      const scene = buildTestScene({ kioskMode: KioskMode.Embed });
+      const panel = new VizPanel({ key: 'panel-1', pluginId: 'timeseries' });
+      const drawer = new PanelInspectDrawer({ panelRef: panel.getRef(), currentTab: InspectTab.Data });
+
+      scene.showModal(drawer);
+      expect(scene.state.overlay).toBeUndefined();
+
+      scene.setState({ kioskMode: undefined });
+      scene.showModal(drawer);
+      expect(scene.state.overlay).toBe(drawer);
+      scene.closeModal();
+
+      scene.setState({ kioskMode: KioskMode.Embed });
+      scene.showModal(drawer);
+      expect(scene.state.overlay).toBeUndefined();
+    });
+  });
+
   describe('DashboardSrv.getCurrent compatibility', () => {
     it('Should set to compatibility wrapper', () => {
       const scene = buildTestScene();
