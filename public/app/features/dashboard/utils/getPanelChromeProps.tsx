@@ -3,9 +3,11 @@ import * as React from 'react';
 import { LinkModel, PanelData, PanelPlugin, renderMarkdown } from '@grafana/data';
 import { getTemplateSrv, locationService } from '@grafana/runtime';
 import { PanelPadding } from '@grafana/ui';
+import { getKioskMode } from 'app/core/navigation/kiosk';
 import { DashboardInteractions } from 'app/features/dashboard-scene/utils/interactions';
 import { InspectTab } from 'app/features/inspector/types';
 import { getPanelLinksSupplier } from 'app/features/panel/panellinks/linkSuppliers';
+import { KioskMode } from 'app/types/dashboard';
 
 import { PanelHeaderTitleItems } from '../dashgrid/PanelHeader/PanelHeaderTitleItems';
 import { DashboardModel } from '../state/DashboardModel';
@@ -65,7 +67,9 @@ export function getPanelChromeProps(props: CommonProps) {
 
   const onOpenErrorInspect = (e: React.SyntheticEvent) => {
     e.stopPropagation();
-    locationService.partial({ inspect: props.panel.id, inspectTab: InspectTab.Error });
+    if (getKioskMode(locationService.getSearchObject()) !== KioskMode.Embed) {
+      locationService.partial({ inspect: props.panel.id, inspectTab: InspectTab.Error });
+    }
     DashboardInteractions.panelStatusMessageClicked();
   };
 
