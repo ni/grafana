@@ -12,7 +12,7 @@ import {
 import { config, hasAlphaPanels } from 'app/core/config';
 
 import { basemapLayers } from './basemaps';
-import { standard } from './basemaps/osm';
+import { carto } from './basemaps/carto';
 import { dataLayers } from './data';
 
 export const DEFAULT_BASEMAP_CONFIG: MapLayerOptions = {
@@ -37,8 +37,8 @@ export const defaultBaseLayer: MapLayerRegistryItem = {
       return layer.create(map, config.geomapDefaultBaseLayerConfig!, eventBus, theme);
     }
 
-    // CARTO basemaps now require an API key, so default to OpenStreetMap instead
-    return standard.create(map, options, eventBus, theme);
+    // For now use carto as our default basemap
+    return carto.create(map, options, eventBus, theme);
   },
 };
 
